@@ -9,13 +9,13 @@ fn main() {
 
     for i in 0..SIZE {
         for j in 0..SIZE {
-            let dx = j - HALFSIZE;
-            let dy = i - HALFSIZE;
-            map[j + i * SIZE] = dx * dx + dy * dy < HALFSIZE * HALFSIZE;
+            let dx = j as isize - HALFSIZE as isize;
+            let dy = i as isize - HALFSIZE as isize;
+            map[j + i * SIZE] = dx * dx + dy * dy < HALFSIZE as isize * HALFSIZE as isize;
         }
     }
 
-    let edt_f64 = edt(&map, (SIZE, SIZE));
+    let edt_f64 = edt(&map, (SIZE, SIZE), false);
 
     let max_value = edt_f64.iter().map(|p| *p).reduce(f64::max).unwrap();
     let edt_img = edt_f64

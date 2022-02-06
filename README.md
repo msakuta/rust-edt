@@ -9,7 +9,7 @@ There are also [other](https://crates.io/crates/distance-transform)
 but I would like to reinvent a wheel that has these advantages:
 
 * No dependencies (except example codes)
-* Intuitive to use (accepts a boolean slice and a shape)
+* Intuitive to use (accepts a numerical slice and a shape)
 
 Performance was not the priority, but I would like to explore more optimizations.
 
@@ -30,7 +30,7 @@ Add dependency
 
 ```toml
 [dependencies]
-edt = "0.1.0"
+edt = "0.1.1"
 ```
 
 Prepare a binary image as a flattened vec.
@@ -40,12 +40,21 @@ This library assumes that the input is a flat vec for 2d image.
 let mut vec: Vec<bool> = vec![/*...*/];
 ```
 
+If you want to read input from an image, you can use [image](https://crates.io/crates/image) crate.
+Make sure to put it to your project's dependencies in that case.
+
+```rust
+use image::GenericImageView;
+let img = image::open("Rust_logo.png").unwrap();
+let dims = img.dimensions();
+```
+
 Call edt with given shape
 
 ```rust
 use edt::edt;
 
-let edt_image = edt(&vec, (32, 32));
+let edt_image = edt(&vec, (32, 32), true);
 ```
 
 Save to a file if you want.
@@ -81,6 +90,6 @@ https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.2644&rep=rep1&type=
 Section 7.7
 
 
-### Saito and Toriwaki [1994] (Original paper)
+### Saito and Toriwaki \[1994\] (Original paper)
 
 https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf

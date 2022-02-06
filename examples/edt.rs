@@ -23,7 +23,7 @@ fn main() -> std::io::Result<()> {
 
     let start = Instant::now();
 
-    let edt_f64 = edt(&slice, (dims.0 as usize, dims.1 as usize));
+    let edt_f64 = edt(&slice, (dims.0 as usize, dims.1 as usize), true);
 
     let duration = start.elapsed().as_micros();
     println!("time: {:?}ms", duration as f64 / 1e3);

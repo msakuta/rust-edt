@@ -2,6 +2,15 @@
 //!
 //! An implementation of 2D EDT ([Euclidian distance transform](https://en.wikipedia.org/wiki/Distance_transform)) with Saito's algorithm in pure Rust
 //!
+//! There are also [other](https://crates.io/crates/distance-transform)
+//! [crates](https://crates.io/crates/dt) that implements EDT,
+//! but I would like to reinvent a wheel that has these advantages:
+//! 
+//! * No dependencies (except example codes)
+//! * Intuitive to use (accepts a numerical slice and a shape)
+//! 
+//! Performance was not the priority, but I would like to explore more optimizations.
+//! 
 //! EDT is the basis of many algorithms, but it is hard to find in a general purpose image processing library,
 //! probably because the algorithm is not trivial to implement efficiently.
 //! This crate provides an implementation of EDT in fairly efficient algorithm presented in the literature.
@@ -26,13 +35,22 @@
 //! let vec: Vec<bool> = vec![/*...*/];
 //! ```
 //!
+//! If you want to read input from an image, you can use [image](https://crates.io/crates/image) crate.
+//! Make sure to put it to your project's dependencies in that case.
+//!
+//! ```rust
+//! use image::GenericImageView;
+//! let img = image::open("Rust_logo.png").unwrap();
+//! let dims = img.dimensions();
+//! ```
+//!
 //! Call edt with given shape
 //!
 //! ```rust
 //! # let vec: Vec<bool> = vec![false; 32 * 32];
 //! use edt::edt;
 //!
-//! let edt_image = edt(&vec, (32, 32));
+//! let edt_image = edt(&vec, (32, 32), true);
 //! ```
 //!
 //! Save to a file if you want.
@@ -41,7 +59,7 @@
 //! ```rust
 //! # use edt::edt;
 //! # let vec: Vec<bool> = vec![false; 32 * 32];
-//! # let edt_image = edt(&vec, (32, 32));
+//! # let edt_image = edt(&vec, (32, 32), true);
 //! use image::{ImageBuffer, Luma};
 //!
 //! let max_value = edt_image.iter().map(|p| *p).reduce(f64::max).unwrap();
@@ -72,19 +90,26 @@
 //! Section 7.7
 //!
 //!
-//! ### Saito and Toriwaki [1994] (Original paper)
+//! ### Saito and Toriwaki \[1994\] (Original paper)
 //!
 //! <https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf>
 
 mod primitive_impl;
 
+/// A trait for types that can be interpreted as a bool.
+/// 
+/// Primitive numerical types (integers and floats) implement this trait,
+/// so you don't have to implement this by yourself.
+/// However, you could implement it for your own custom type, if you want.
+/// 
+/// We don't use [num](https://crates.io/crates/num) crate because it is overkill for our purposes.
 pub trait BoolLike {
     fn as_bool(&self) -> bool;
 }
 
 /// Produce an EDT from binary image
-pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize)) -> Vec<f64> {
-    let horz_edt = horizontal_edt(map, shape);
+pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
+    let horz_edt = horizontal_edt(map, shape, invert);
 
     let vertical_scan = |x, y| {
         let total_edt = (0..shape.1).map(|y2| {
@@ -105,10 +130,10 @@ pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize)) -> Vec<f64> {
     ret
 }
 
-fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize)) -> Vec<f64> {
+fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
     let mut horz_edt = map
         .iter()
-        .map(|b| ((b.as_bool() as usize) * map.len()) as f64)
+        .map(|b| (((b.as_bool() != invert) as usize) * map.len()) as f64)
         .collect::<Vec<f64>>();
 
     let scan = |x, y, min_val: &mut f64, horz_edt: &mut Vec<f64>| {
@@ -210,11 +235,11 @@ mod test {
             "0000110000",
         ];
         print_2d(&reshape(
-            &horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len())),
+            &horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len()), false),
             (str_edt[0].len(), str_edt.len()),
         ));
         assert_eq!(
-            horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len())),
+            horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len()), false),
             parse_edt_str(&str_edt)
         );
     }
@@ -230,7 +255,7 @@ mod test {
             "0000110000",
         ];
         let shape = (map.len() / str_edt.len(), str_edt.len());
-        let edt = edt(&map, shape);
+        let edt = edt(&map, shape, false);
         eprintln!("edt({:?}):", shape);
         print_2d(&reshape(&edt, shape));
         assert_eq!(edt, parse_edt_str(&str_edt));
