@@ -2,7 +2,8 @@
 
 An implementation of 2D EDT ([Euclidian distance transform](https://en.wikipedia.org/wiki/Distance_transform)) with Saito's algorithm in pure Rust
 
-There is also [another crate](https://crates.io/crates/distance-transform) that implements EDT implementation,
+There are also [other](https://crates.io/crates/distance-transform)
+[crates](https://crates.io/crates/dt) that implements EDT,
 but I would like to reinvent a wheel that has these advantages:
 
 * No dependencies (except example codes)
@@ -10,8 +11,8 @@ but I would like to reinvent a wheel that has these advantages:
 
 Performance was not the priority, but I would like to explore more optimizations.
 
-![Rust-logo](https://github.com/msakuta/rust-edt/blob/master/Rust_logo.png)
-![Rust-logo-edt](https://github.com/msakuta/rust-edt/blob/master/Rust_logo_edt.png)
+![Rust-logo](https://raw.githubusercontent.com/msakuta/rust-edt/master/Rust_logo.png)
+![Rust-logo-edt](https://raw.githubusercontent.com/msakuta/rust-edt/master/Rust_logo_edt.png)
 
 EDT is the basis of many algorithms, but it is hard to find in a general purpose image processing library,
 probably because the algorithm is not trivial to implement efficiently.
