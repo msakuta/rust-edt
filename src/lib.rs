@@ -13,15 +13,12 @@ pub fn edt(map: &[bool], shape: (usize, usize)) -> Vec<f64> {
 
     let mut ret = vec![0.; shape.0 * shape.1];
 
-    for x in 0..shape.1 {
+    for x in 0..shape.0 {
         for y in 0..shape.1 {
             ret[x + y * shape.0] = vertical_scan(x, y);
         }
     }
 
-    for v in ret.iter_mut() {
-        *v = *v * *v;
-    }
     ret
 }
 
@@ -64,7 +61,7 @@ mod test {
     }
 
     fn test_map() -> Vec<bool> {
-        let str_map = ["0001111000", "0011111110", "0001111000", "0000110000"];
+        let str_map = ["0000000000", "0001111000", "0011111110", "0001111000", "0000110000"];
         let map = flatten(
             str_map
                 .iter()
@@ -74,7 +71,7 @@ mod test {
         map
     }
 
-    fn reshape(v: Vec<f64>, shape: (usize, usize)) -> Vec<Vec<f64>> {
+    fn reshape(v: &Vec<f64>, shape: (usize, usize)) -> Vec<Vec<f64>> {
         let mut ret = vec![];
 
         for y in 0..shape.1 {
@@ -87,7 +84,11 @@ mod test {
     fn print_2d(v: &[Vec<f64>]) {
         for row in v {
             for cell in row {
-                print!("{:.0}", cell);
+                if *cell == 16. {
+                    print!("f");
+                } else {
+                    print!("{:.0}", cell);
+                }
             }
             print!("\n");
         }
@@ -106,8 +107,8 @@ mod test {
     #[test]
     fn test_horizontal_edt() {
         let map = test_map();
-        let str_edt = ["0001221000", "0012343210", "0001221000", "0000110000"];
-        print_2d(&reshape(horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len())), (str_edt[0].len(), str_edt.len())));
+        let str_edt = ["0000000000", "0001221000", "0012343210", "0001221000", "0000110000"];
+        print_2d(&reshape(&horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len())), (str_edt[0].len(), str_edt.len())));
         assert_eq!(
             horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len())),
             parse_edt_str(&str_edt)
