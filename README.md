@@ -1,5 +1,7 @@
 # Rust-edt
 
+[![Rust](https://github.com/msakuta/rust-edt/actions/workflows/rust.yml/badge.svg)](https://github.com/msakuta/rust-edt/actions/workflows/rust.yml)
+
 An implementation of 2D EDT ([Euclidian distance transform](https://en.wikipedia.org/wiki/Distance_transform)) with Saito's algorithm in pure Rust
 
 There are also [other](https://crates.io/crates/distance-transform)
