@@ -1,6 +1,6 @@
 use image::{GenericImageView, ImageBuffer, Luma};
 use rust_edt::edt;
-use std::env;
+use std::{env, time::Instant};
 
 fn main() -> std::io::Result<()> {
     let file_name = env::args()
@@ -25,7 +25,12 @@ fn main() -> std::io::Result<()> {
 
     println!("len {}", vec.len());
 
+    let start = Instant::now();
+
     let edt_f64 = edt(&vec, (dims.0 as usize, dims.1 as usize));
+
+    let duration = start.elapsed().as_micros();
+    println!("time: {:?}ms", duration as f64 / 1e3 );
     let max_value = edt_f64.iter().map(|p| *p).reduce(f64::max).unwrap();
     let edt_img = edt_f64
         .iter()
