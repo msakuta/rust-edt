@@ -1,7 +1,11 @@
 [package]
 name = "edt"
 version = "0.1.0"
+authors = ["msakuta <masahiro.sakuta@gmail.com>"]
 edition = "2018"
+description = "An implementation of 2D EDT (Euclidian distance transform) with Saito's algorithm in pure Rust"
+license = "MIT"
+repository = "https://github.com/msakuta/rotate-enum"
 
 [dependencies]
 

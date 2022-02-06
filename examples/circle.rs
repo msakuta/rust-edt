@@ -2,7 +2,7 @@ use edt::edt;
 use image::{ImageBuffer, Luma};
 
 fn main() {
-    const SIZE: usize = 128;
+    const SIZE: usize = 512;
     const HALFSIZE: usize = SIZE / 2;
 
     let mut map = vec![false; SIZE * SIZE];
