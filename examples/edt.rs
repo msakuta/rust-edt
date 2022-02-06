@@ -15,21 +15,15 @@ fn main() -> std::io::Result<()> {
     println!("dimensions {:?}, color: {:?}", dims, img.color());
 
     let img2 = img.into_luma8();
+    let flat_samples = img2.as_flat_samples();
 
-    let mut vec = vec![];
-    vec.extend(
-        img2.as_flat_samples()
-            .image_slice()
-            .unwrap()
-            .iter()
-            .map(|b| *b == 0),
-    );
+    let slice = flat_samples.image_slice().unwrap();
 
-    println!("len {}", vec.len());
+    println!("len {}", slice.len());
 
     let start = Instant::now();
 
-    let edt_f64 = edt(&vec, (dims.0 as usize, dims.1 as usize));
+    let edt_f64 = edt(&slice, (dims.0 as usize, dims.1 as usize));
 
     let duration = start.elapsed().as_micros();
     println!("time: {:?}ms", duration as f64 / 1e3);
