@@ -10,8 +10,8 @@ but I would like to reinvent a wheel that has these advantages:
 
 Performance was not the priority, but I would like to explore more optimizations.
 
-![Rust-logo](Rust_logo.png)
-![Rust-logo-edt](Rust_logo_edt.png)
+![Rust-logo](https://github.com/msakuta/rust-edt/blob/master/Rust_logo.png)
+![Rust-logo-edt](https://github.com/msakuta/rust-edt/blob/master/Rust_logo_edt.png)
 
 EDT is the basis of many algorithms, but it is hard to find in a general purpose image processing library,
 probably because the algorithm is not trivial to implement efficiently.
