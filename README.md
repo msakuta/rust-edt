@@ -2,6 +2,17 @@
 
 An implementation of 2D EDT ([Euclidian distance transform](https://en.wikipedia.org/wiki/Distance_transform)) with Saito's algorithm in pure Rust
 
+There is also [another crate](https://crates.io/crates/distance-transform) that implements EDT implementation,
+but I would like to reinvent a wheel that has these advantages.
+
+* No dependencies (except example codes)
+* Intuitive to use (accepts a boolean slice and a shape)
+
+Performance was not the priority, but I would like to explore more optimizations.
+
+![Rust-logo](Rust_logo.png)
+![Rust-logo-edt](Rust_logo_edt.png)
+
 ## Usage
 
 Add dependency
@@ -21,7 +32,7 @@ let mut vec: Vec<u8> = vec![/*...*/];
 Call edt with given shape
 
 ```rust
-use rust_edt::edt;
+use edt::edt;
 
 let edt_image = edt(&vec, (32, 32));
 ```

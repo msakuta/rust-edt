@@ -1,5 +1,5 @@
-use image::{ImageBuffer, Luma};
 use edt::edt;
+use image::{ImageBuffer, Luma};
 
 fn main() {
     const SIZE: usize = 128;

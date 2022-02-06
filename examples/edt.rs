@@ -1,6 +1,7 @@
+// mod save_img;
 
-use image::{GenericImageView, ImageBuffer, Luma};
 use edt::edt;
+use image::{GenericImageView, ImageBuffer, Luma};
 use std::{env, time::Instant};
 
 fn main() -> std::io::Result<()> {
@@ -31,7 +32,7 @@ fn main() -> std::io::Result<()> {
     let edt_f64 = edt(&vec, (dims.0 as usize, dims.1 as usize));
 
     let duration = start.elapsed().as_micros();
-    println!("time: {:?}ms", duration as f64 / 1e3 );
+    println!("time: {:?}ms", duration as f64 / 1e3);
     let max_value = edt_f64.iter().map(|p| *p).reduce(f64::max).unwrap();
     let edt_img = edt_f64
         .iter()
