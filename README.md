@@ -63,7 +63,7 @@ let edt_image = edt(&vec, (dims.0 as usize, dims.1 as usize), true);
 ```
 
 Save to a file if you want.
-The code below normalizes the value with maximum value to 8 bytes grayscale image.
+The code below normalizes the value with maximum value to 8 bits grayscale image.
 
 ```rust
 use image::{ImageBuffer, Luma};
@@ -80,6 +80,8 @@ let edt_img: ImageBuffer<Luma<u8>, Vec<u8>> =
 // Write the contents of this image to the Writer in PNG format.
 edt_img.save("edt.png").unwrap();
 ```
+
+See [examples](https://github.com/msakuta/rust-edt/tree/master/examples) folder for more.
 
 ## Literature
 

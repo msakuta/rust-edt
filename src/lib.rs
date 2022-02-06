@@ -25,7 +25,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! edt = "0.1.0"
+//! edt = "0.1.1"
 //! ```
 //!
 //! Prepare a binary image as a flattened vec.
@@ -60,7 +60,7 @@
 //! ```
 //!
 //! Save to a file if you want.
-//! The code below normalizes the value with maximum value to 8 bytes grayscale image.
+//! The code below normalizes the value with maximum value to 8 bits grayscale image.
 //!
 //! ```rust
 //! # use edt::edt;
