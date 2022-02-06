@@ -67,14 +67,14 @@
 //!
 //! doi=10.1.1.66.2644
 //!
-//! https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.2644&rep=rep1&type=pdf
+//! <https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.2644&rep=rep1&type=pdf>
 //!
 //! Section 7.7
 //!
 //!
 //! ### Saito and Toriwaki [1994] (Original paper)
 //!
-//! https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf
+//! <https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf>
 
 mod primitive_impl;
 
