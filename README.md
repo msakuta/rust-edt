@@ -35,9 +35,11 @@ edt = "0.1.1"
 
 Prepare a binary image as a flattened vec.
 This library assumes that the input is a flat vec for 2d image.
+You can specify the dimensions with a tuple.
 
 ```rust
 let mut vec: Vec<bool> = vec![/*...*/];
+let dims = (32, 32);
 ```
 
 If you want to read input from an image, you can use [image](https://crates.io/crates/image) crate.
@@ -47,6 +49,9 @@ Make sure to put it to your project's dependencies in that case.
 use image::GenericImageView;
 let img = image::open("Rust_logo.png").unwrap();
 let dims = img.dimensions();
+let img2 = img.into_luma8();
+let flat_samples = img2.as_flat_samples();
+let vec = flat_samples.image_slice().unwrap();
 ```
 
 Call edt with given shape
@@ -54,7 +59,7 @@ Call edt with given shape
 ```rust
 use edt::edt;
 
-let edt_image = edt(&vec, (32, 32), true);
+let edt_image = edt(&vec, (dims.0 as usize, dims.1 as usize), true);
 ```
 
 Save to a file if you want.
