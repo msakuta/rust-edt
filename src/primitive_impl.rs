@@ -23,6 +23,9 @@ impl_int!(i16);
 impl_int!(i32);
 impl_int!(u32);
 impl_int!(i64);
+impl_int!(u64);
+impl_int!(i128);
+impl_int!(u128);
 
 macro_rules! impl_float {
     ($target:ty) => {
