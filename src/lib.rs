@@ -2,8 +2,8 @@
 //!
 //! An implementation of 2D EDT ([Euclidian distance transform](https://en.wikipedia.org/wiki/Distance_transform)) with Saito's algorithm in pure Rust
 //!
-//! EDT is the basis of many algorithms, but it is hard to find in a general purpose image processing library.
-//! The algorithm is not trivial to implement efficiently.
+//! EDT is the basis of many algorithms, but it is hard to find in a general purpose image processing library,
+//! probably because the algorithm is not trivial to implement efficiently.
 //! This crate provides an implementation of EDT in fairly efficient algorithm presented in the literature.
 //!
 //! The algorithm used in this crate (Saito's algorithm) is O(n^3), where n is the number of pixels along one direction.
@@ -23,13 +23,13 @@
 //! This library assumes that the input is a flat vec for 2d image.
 //!
 //! ```rust
-//! let vec: Vec<u8> = vec![/*...*/];
+//! let vec: Vec<bool> = vec![/*...*/];
 //! ```
 //!
 //! Call edt with given shape
 //!
 //! ```rust
-//! # let vec: Vec<u8> = vec![/*...*/];
+//! # let vec: Vec<bool> = vec![false; 32 * 32];
 //! use edt::edt;
 //!
 //! let edt_image = edt(&vec, (32, 32));
@@ -40,7 +40,7 @@
 //!
 //! ```rust
 //! # use edt::edt;
-//! # let vec: Vec<u8> = vec![/*...*/];
+//! # let vec: Vec<bool> = vec![false; 32 * 32];
 //! # let edt_image = edt(&vec, (32, 32));
 //! use image::{ImageBuffer, Luma};
 //!
