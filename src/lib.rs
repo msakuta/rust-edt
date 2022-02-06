@@ -76,8 +76,14 @@
 //!
 //! https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf
 
+mod primitive_impl;
+
+pub trait BoolLike {
+    fn as_bool(&self) -> bool;
+}
+
 /// Produce an EDT from binary image
-pub fn edt(map: &[bool], shape: (usize, usize)) -> Vec<f64> {
+pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize)) -> Vec<f64> {
     let horz_edt = horizontal_edt(map, shape);
 
     let vertical_scan = |x, y| {
@@ -99,10 +105,10 @@ pub fn edt(map: &[bool], shape: (usize, usize)) -> Vec<f64> {
     ret
 }
 
-fn horizontal_edt(map: &[bool], shape: (usize, usize)) -> Vec<f64> {
+fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize)) -> Vec<f64> {
     let mut horz_edt = map
         .iter()
-        .map(|b| ((*b as usize) * map.len()) as f64)
+        .map(|b| ((b.as_bool() as usize) * map.len()) as f64)
         .collect::<Vec<f64>>();
 
     let scan = |x, y, min_val: &mut f64, horz_edt: &mut Vec<f64>| {
