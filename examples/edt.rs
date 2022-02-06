@@ -8,7 +8,7 @@ fn main() -> std::io::Result<()> {
     let file_name = env::args()
         .skip(1)
         .next()
-        .unwrap_or_else(|| "sample.png".to_string());
+        .unwrap_or_else(|| "Rust_logo.png".to_string());
 
     let img = image::open(file_name).unwrap();
     let dims = img.dimensions();

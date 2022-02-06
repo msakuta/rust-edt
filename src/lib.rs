@@ -61,11 +61,20 @@
 //!
 //! ## Literature
 //!
+//! ### 2D Euclidean Distance Transform Algorithms: A Comparative Survey
+//!
+//! This paper is a great summary of this field of research.
+//!
 //! doi=10.1.1.66.2644
 //!
-//! <https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.2644&rep=rep1&type=pdf>
+//! https://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.66.2644&rep=rep1&type=pdf
 //!
 //! Section 7.7
+//!
+//!
+//! ### Saito and Toriwaki [1994] (Original paper)
+//!
+//! https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf
 
 /// Produce an EDT from binary image
 pub fn edt(map: &[bool], shape: (usize, usize)) -> Vec<f64> {
@@ -109,12 +118,10 @@ fn horizontal_edt(map: &[bool], shape: (usize, usize)) -> Vec<f64> {
         for x in 0..shape.0 {
             scan(x, y, &mut min_val, &mut horz_edt);
         }
-        // eprintln!("left {}: {:?}", y, &horz_edt[y * shape.0..(y + 1) * shape.0]);
         min_val = 0.;
         for x in (0..shape.0).rev() {
             scan(x, y, &mut min_val, &mut horz_edt);
         }
-        // eprintln!("rght {}: {:?}", y, &horz_edt[y * shape.0..(y + 1) * shape.0]);
     }
 
     horz_edt
