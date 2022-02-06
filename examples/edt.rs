@@ -1,5 +1,6 @@
+
 use image::{GenericImageView, ImageBuffer, Luma};
-use rust_edt::edt;
+use edt::edt;
 use std::{env, time::Instant};
 
 fn main() -> std::io::Result<()> {

@@ -1,5 +1,5 @@
 use image::{ImageBuffer, Luma};
-use rust_edt::edt;
+use edt::edt;
 
 fn main() {
     const SIZE: usize = 128;
