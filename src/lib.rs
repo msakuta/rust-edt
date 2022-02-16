@@ -5,12 +5,12 @@
 //! There are also [other](https://crates.io/crates/distance-transform)
 //! [crates](https://crates.io/crates/dt) that implements EDT,
 //! but I would like to reinvent a wheel that has these advantages:
-//! 
+//!
 //! * No dependencies (except example codes)
 //! * Intuitive to use (accepts a numerical slice and a shape)
-//! 
+//!
 //! Performance was not the priority, but I would like to explore more optimizations.
-//! 
+//!
 //! EDT is the basis of many algorithms, but it is hard to find in a general purpose image processing library,
 //! probably because the algorithm is not trivial to implement efficiently.
 //! This crate provides an implementation of EDT in fairly efficient algorithm presented in the literature.
@@ -103,21 +103,21 @@
 mod primitive_impl;
 
 /// A trait for types that can be interpreted as a bool.
-/// 
+///
 /// Primitive numerical types (integers and floats) implement this trait,
 /// so you don't have to implement this by yourself.
 /// However, you could implement it for your own custom type, if you want.
-/// 
+///
 /// We don't use [num](https://crates.io/crates/num) crate because it is overkill for our purposes.
 pub trait BoolLike {
     fn as_bool(&self) -> bool;
 }
 
 /// Produce an EDT from binary image.
-/// 
+///
 /// The returned vec has the same size as the input slice, containing
 /// computed EDT.
-/// 
+///
 /// It assumes zero pixels are obstacles. If you want to invert the logic,
 /// put `true` to the third argument.
 pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
@@ -128,7 +128,11 @@ pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f
             let horz_val: f64 = horz_edt[x + y2 * shape.0];
             (y2 as f64 - y as f64).powf(2.) + horz_val.powf(2.)
         });
-        total_edt.reduce(f64::min).unwrap()
+        total_edt
+            .reduce(f64::min)
+            .unwrap()
+            .min((y as f64).powf(2.))
+            .min(((shape.1 - y) as f64).powf(2.))
     };
 
     let mut ret = vec![0.; shape.0 * shape.1];
