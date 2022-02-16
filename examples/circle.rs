@@ -1,5 +1,6 @@
 use edt::edt;
 use image::{ImageBuffer, Luma};
+use std::time::Instant;
 
 fn main() {
     const SIZE: usize = 512;
@@ -15,8 +16,12 @@ fn main() {
         }
     }
 
+    let start = Instant::now();
+
     let edt_f64 = edt(&map, (SIZE, SIZE), false);
 
+    let duration = start.elapsed().as_micros();
+    println!("time: {:?}ms", duration as f64 / 1e3);
     let max_value = edt_f64.iter().map(|p| *p).reduce(f64::max).unwrap();
     let edt_img = edt_f64
         .iter()
