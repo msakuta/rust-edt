@@ -188,6 +188,9 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
 
 use fast_marcher::{FastMarcher, Grid};
 
+/// EDT using Fast Marching method.
+///
+/// Fast Marching method is inexact, but much faster algorithm to compute EDT especially for large images.
 pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
     let mut grid = Grid {
         storage: map
