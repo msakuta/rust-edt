@@ -282,7 +282,7 @@ mod test {
             "0001111000",
         ];
         let shape = (map.len() / str_edt.len(), str_edt.len());
-        let edt = edt(&map, shape, false);
+        let edt = edt_sq(&map, shape, false);
         eprintln!("edt({:?}):", shape);
         print_2d(&reshape(&edt, shape));
         assert_eq!(edt, parse_edt_str(&str_edt));
