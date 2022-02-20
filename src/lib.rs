@@ -1,6 +1,6 @@
 //! # edt
 //!
-//! An implementation of 2D EDT ([Euclidian distance transform](https://en.wikipedia.org/wiki/Distance_transform)) with Saito's algorithm in pure Rust
+//! An implementation of 2D EDT ([Euclidean distance transform](https://en.wikipedia.org/wiki/Distance_transform)) with Saito's algorithm in pure Rust
 //!
 //! There are also [other](https://crates.io/crates/distance-transform)
 //! [crates](https://crates.io/crates/dt) that implements EDT,
@@ -121,6 +121,17 @@ pub trait BoolLike {
 /// It assumes zero pixels are obstacles. If you want to invert the logic,
 /// put `true` to the third argument.
 pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
+    let mut ret = edt_sq(map, shape, invert);
+    for pixel in &mut ret {
+        *pixel = pixel.sqrt();
+    }
+    ret
+}
+
+/// Squared EDT of a given image.
+///
+/// It is more efficient if you only need squared edt, because you wouldn't need to compute square root.
+pub fn edt_sq<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
     let horz_edt = horizontal_edt(map, shape, invert);
 
     let vertical_scan = |x, y| {
