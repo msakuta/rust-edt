@@ -1,6 +1,6 @@
 // mod save_img;
 
-use edt::edt;
+use edt::{edt, edt_fmm};
 use image::{GenericImageView, ImageBuffer, Luma};
 use std::{env, time::Instant};
 
@@ -9,6 +9,12 @@ fn main() -> std::io::Result<()> {
         .skip(1)
         .next()
         .unwrap_or_else(|| "Rust_logo.png".to_string());
+
+    let use_fmm = env::args()
+        .skip(2)
+        .next()
+        .map(|s| s == "-e")
+        .unwrap_or(false);
 
     let img = image::open(file_name).unwrap();
     let dims = img.dimensions();
@@ -23,7 +29,8 @@ fn main() -> std::io::Result<()> {
 
     let start = Instant::now();
 
-    let edt_f64 = edt(&slice, (dims.0 as usize, dims.1 as usize), true);
+    let edt_f64 =
+        if use_fmm { edt_fmm } else { edt }(&slice, (dims.0 as usize, dims.1 as usize), true);
 
     let duration = start.elapsed().as_micros();
     println!("time: {:?}ms", duration as f64 / 1e3);

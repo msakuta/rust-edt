@@ -100,6 +100,7 @@
 //!
 //! <https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf>
 
+mod fast_marcher;
 mod primitive_impl;
 
 /// A trait for types that can be interpreted as a bool.
@@ -183,6 +184,23 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
     }
 
     horz_edt
+}
+
+use fast_marcher::{FastMarcher, Grid};
+
+pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
+    let mut grid = Grid {
+        storage: map
+            .iter()
+            .map(|b| ((b.as_bool() != invert) as usize) as f64)
+            .collect::<Vec<f64>>(),
+        dims: shape,
+    };
+    let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
+
+    fast_marcher.evolve(&mut grid, 1_000_000);
+
+    grid.storage
 }
 
 #[cfg(test)]
