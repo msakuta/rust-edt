@@ -125,4 +125,4 @@ https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf
 
 ### An introduction to Fast Marching Method
 
-https://www.numerical-tours.com/matlab/fastmarching_0_implementing/
+[Dijkstra and Fast Marching Algorithms (tutorial in Matlab)](https://www.numerical-tours.com/matlab/fastmarching_0_implementing/)

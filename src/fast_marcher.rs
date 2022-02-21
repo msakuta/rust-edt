@@ -194,7 +194,7 @@ impl FastMarcher {
 }
 
 #[non_exhaustive]
-/// A type that will be given as the argument to the callback with [`edt_fmm_cb`].
+/// A type that will be given as the argument to the callback with [`crate::edt_fmm_cb`].
 ///
 /// It has `non_exhaustive` attribute so that the library can add more arguments in
 /// the future.
