@@ -32,8 +32,16 @@ Fast Marching method is a strategy of algorithms that use expanding wavefront
 Tehcnically, it is a method to solve Eikonal PDE with known margin of error.
 It is especially useful with EDT, because it has O(n^2) complexity, which is beneficial in large images.
 
+In my specific environment with 1024 x 1024 pixels image, it has significant
+difference like below.
+
+* Exact EDT: 2900ms
+* Fast Marching EDT: 93.7ms
+
 However, it has downside that it cannot produce exact (true) EDT.
 That said, FMM has enough accuracy for most applications.
+
+The library has a function with progress callback that you can use to produce nice animation like below.
 
 ![Rust-logo-fmm](https://raw.githubusercontent.com/msakuta/msakuta.github.io/master/images/showcase/Rust_logo_animated.gif)
 
