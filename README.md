@@ -24,6 +24,19 @@ The algorithm used in this crate (Saito's algorithm) is O(n^3), where n is the n
 Naive computation of EDT would be O(n^4), so it is certainly better than that, but there is also fast-marching based
 algorithm that is O(n^2).
 
+
+### Fast Marching Method
+
+Fast Marching method is a strategy of algorithms that use expanding wavefront
+(sometimes called grassfire analogy).
+Tehcnically, it is a method to solve Eikonal PDE with known margin of error.
+It is especially useful with EDT, because it has O(n^2) complexity, which is beneficial in large images.
+
+However, it has downside that it cannot produce exact (true) EDT.
+That said, FMM has enough accuracy for most applications.
+
+![Rust-logo-fmm](https://raw.githubusercontent.com/msakuta/msakuta.github.io/master/images/showcase/Rust_logo_animated.gif)
+
 ## Usage
 
 Add dependency
@@ -100,3 +113,8 @@ Section 7.7
 ### Saito and Toriwaki \[1994\] (Original paper)
 
 https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf
+
+
+### An introduction to Fast Marching Method
+
+https://www.numerical-tours.com/matlab/fastmarching_0_implementing/
