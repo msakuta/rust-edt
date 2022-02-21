@@ -25,7 +25,7 @@
 //!
 //! ```toml
 //! [dependencies]
-//! edt = "0.1.2"
+//! edt = "0.2.0"
 //! ```
 //!
 //! Prepare a binary image as a flattened vec.
@@ -130,6 +130,8 @@ pub fn edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f
 }
 
 /// Squared EDT of a given image.
+/// 
+/// The interface is equivalent to [`edt`], but it returns squared EDT.
 ///
 /// It is more efficient if you only need squared edt, because you wouldn't need to compute square root.
 pub fn edt_sq<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
@@ -328,7 +330,7 @@ mod test {
             "0001111000",
         ];
         let shape = (map.len() / str_edt.len(), str_edt.len());
-        let edt = edt(&map, shape, false);
+        let edt = edt_sq(&map, shape, false);
         eprintln!("edt({:?}):", shape);
         print_2d(&reshape(&edt, shape));
         assert_eq!(edt, parse_edt_str(&str_edt));
