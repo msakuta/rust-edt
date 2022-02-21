@@ -6,6 +6,7 @@ use std::{
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+/// A type representing a position in Grid
 pub struct GridPos {
     pub row: usize,
     pub col: usize,
@@ -193,8 +194,16 @@ impl FastMarcher {
 }
 
 #[non_exhaustive]
+/// A type that will be given as the argument to the callback with [`edt_fmm_cb`].
+///
+/// It has `non_exhaustive` attribute so that the library can add more arguments in
+/// the future.
 pub struct FMMCallbackData<'src> {
+    /// The buffer for Fast Marching output in progress.
     pub map: &'src [f64],
+    /// A dynamically dispatched iterator for positions of next pixels.
+    ///
+    /// You can examine "expanding wavefront" by iterating this iterator.
     pub next_pixels: &'src mut dyn Iterator<Item = GridPos>,
 }
 
