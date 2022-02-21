@@ -6,7 +6,7 @@ use std::{
 };
 
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
-pub(super) struct GridPos {
+pub struct GridPos {
     pub row: usize,
     pub col: usize,
 }
@@ -190,8 +190,31 @@ impl FastMarcher {
         }
         false
     }
+}
 
-    pub(super) fn evolve(&mut self, grid: &mut Grid, steps: usize) {
+#[non_exhaustive]
+pub struct FMMCallbackData<'src> {
+    pub map: &'src [f64],
+    pub next_pixels: &'src mut dyn Iterator<Item = GridPos>,
+}
+
+impl FastMarcher {
+    pub(super) fn evolve(
+        &mut self,
+        grid: &mut Grid,
+        mut callback: impl FnMut(FMMCallbackData) -> bool,
+    ) {
+        while self.evolve_single(grid) {
+            if !callback(FMMCallbackData {
+                map: &grid.storage,
+                next_pixels: &mut self.next_cells.iter().map(|nc| nc.pos),
+            }) {
+                return;
+            }
+        }
+    }
+
+    pub(super) fn evolve_steps(&mut self, grid: &mut Grid, steps: usize) {
         let start = Instant::now();
         let mut evolved = false;
         for _ in 0..steps {

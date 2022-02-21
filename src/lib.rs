@@ -188,7 +188,7 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
 
 use fast_marcher::{FastMarcher, Grid};
 
-/// EDT using Fast Marching method.
+/// Shorthand function for EDT using Fast Marching method.
 ///
 /// Fast Marching method is inexact, but much faster algorithm to compute EDT especially for large images.
 pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
@@ -201,7 +201,32 @@ pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> V
     };
     let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
 
-    fast_marcher.evolve(&mut grid, 1_000_000);
+    fast_marcher.evolve_steps(&mut grid, 1_000_000);
+
+    grid.storage
+}
+
+pub use fast_marcher::{FMMCallbackData, GridPos};
+
+/// EDT with Fast Marching method with a callback.
+///
+/// The callback can terminate the process
+pub fn edt_fmm_cb<T: BoolLike>(
+    map: &[T],
+    shape: (usize, usize),
+    invert: bool,
+    callback: impl FnMut(FMMCallbackData) -> bool,
+) -> Vec<f64> {
+    let mut grid = Grid {
+        storage: map
+            .iter()
+            .map(|b| ((b.as_bool() != invert) as usize) as f64)
+            .collect::<Vec<f64>>(),
+        dims: shape,
+    };
+    let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
+
+    fast_marcher.evolve(&mut grid, callback);
 
     grid.storage
 }
