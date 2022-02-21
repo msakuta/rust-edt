@@ -87,7 +87,7 @@ fn main() -> std::io::Result<()> {
                         }
 
                         for pixel in next_pixels {
-                            edt_img[(pixel.col as u32, pixel.row as u32)] = Rgb([255, 0, 0]);
+                            edt_img[(pixel.0 as u32, pixel.1 as u32)] = Rgb([255, 0, 0]);
                         }
 
                         edt_img.save(&format!("edt{}.png", i)).unwrap();

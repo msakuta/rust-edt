@@ -5,12 +5,8 @@ use std::{
     time::Instant,
 };
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
 /// A type representing a position in Grid
-pub struct GridPos {
-    pub row: usize,
-    pub col: usize,
-}
+pub type GridPos = (usize, usize);
 
 pub(super) struct Grid {
     pub storage: Vec<f64>,
@@ -23,17 +19,17 @@ impl Grid {
         let mut boundary = Vec::new();
         for y in 0..self.dims.1 {
             for x in 0..self.dims.0 {
-                if self[GridPos { col: x, row: y }] != 0.
+                if self[(x, y)] != 0.
                     && (x < 1
-                        || self[GridPos { col: x - 1, row: y }] == 0.
+                        || self[(x - 1, y)] == 0.
                         || y < 1
-                        || self[GridPos { col: x, row: y - 1 }] == 0.
+                        || self[(x, y - 1)] == 0.
                         || self.dims.0 <= x + 1
-                        || self[GridPos { col: x + 1, row: y }] == 0.
+                        || self[(x + 1, y)] == 0.
                         || self.dims.1 <= y + 1
-                        || self[GridPos { col: x, row: y + 1 }] == 0.)
+                        || self[(x, y + 1)] == 0.)
                 {
-                    let pos = GridPos { col: x, row: y };
+                    let pos = (x, y);
                     boundary.push(pos);
                 }
             }
@@ -48,14 +44,14 @@ impl Grid {
 impl Index<GridPos> for Grid {
     type Output = f64;
     fn index(&self, pos: GridPos) -> &Self::Output {
-        let idx = pos.row * self.dims.0 + pos.col;
+        let idx = pos.1 * self.dims.0 + pos.0;
         self.storage.index(idx)
     }
 }
 
 impl IndexMut<GridPos> for Grid {
     fn index_mut(&mut self, pos: GridPos) -> &mut Self::Output {
-        let idx = pos.row * self.dims.0 + pos.col;
+        let idx = pos.1 * self.dims.0 + pos.0;
         self.storage.index_mut(idx)
     }
 }
@@ -106,11 +102,7 @@ impl FastMarcher {
             })
             .collect();
         let mut visited = vec![0.; dims.0 * dims.1];
-        for NextCell {
-            pos: GridPos { col: x, row: y },
-            ..
-        } in &next_cells
-        {
+        for NextCell { pos: (x, y), .. } in &next_cells {
             visited[x + y * dims.0] = 1.;
         }
         Self {
@@ -123,8 +115,8 @@ impl FastMarcher {
     /// Returns whether a pixel has changed; if not, there is no point iterating again
     fn evolve_single(&mut self, grid: &mut Grid) -> bool {
         while let Some(next) = self.next_cells.pop() {
-            let x = next.pos.col as isize;
-            let y = next.pos.row as isize;
+            let x = next.pos.0 as isize;
+            let y = next.pos.1 as isize;
 
             let mut check_neighbor = |x, y| {
                 if x < 0 || self.dims.0 as isize <= x || y < 0 || self.dims.1 as isize <= y {
@@ -165,10 +157,9 @@ impl FastMarcher {
                 };
                 let (x, y) = (x as usize, y as usize);
                 let visited = self.visited[x + y * self.dims.0];
-                if (visited == 0. || next_cost < visited) && grid[GridPos { col: x, row: y }] != 0.
-                {
+                if (visited == 0. || next_cost < visited) && grid[(x, y)] != 0. {
                     self.visited[x + y * self.dims.0] = next_cost;
-                    let pos = GridPos { col: x, row: y };
+                    let pos = (x, y);
                     let cost = (next_cost) as f64;
                     grid[pos] = cost;
                     self.next_cells.push(NextCell {
