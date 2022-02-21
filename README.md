@@ -56,7 +56,7 @@ Add dependency
 
 ```toml
 [dependencies]
-edt = "0.2.0"
+edt = "0.2.1"
 ```
 
 Prepare a binary image as a flattened vec.
