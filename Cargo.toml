@@ -10,7 +10,7 @@ exclude = [
     "*.png",
     "*.gif",
 ]
-keywords = ["image-processing", "conputer-vision"]
+keywords = ["image-processing", "computer-vision"]
 
 [dependencies]
 

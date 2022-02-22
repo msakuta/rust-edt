@@ -25,7 +25,7 @@ pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> V
 
 /// EDT with Fast Marching method with a callback.
 ///
-/// The callback can terminate the process
+/// The callback can terminate the process by returning false.
 pub fn edt_fmm_cb<T: BoolLike>(
     map: &[T],
     shape: (usize, usize),

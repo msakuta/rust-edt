@@ -46,7 +46,10 @@ The library has a function with progress callback that you can use to produce ni
 ![Rust-logo-fmm](https://raw.githubusercontent.com/msakuta/msakuta.github.io/master/images/showcase/Rust_logo_animated.gif)
 
 The difference between exact and Fast Marching versions can be visualized like below (see
-[example-edt](https://github.com/msakuta/rust-edt/blob/master/examples/edt.rs)).
+[example-edt](https://github.com/msakuta/rust-edt/blob/master/examples/edt.rs))
+which can be run by 
+
+    cargo r --release --example edt -- Rust_logo.png -d
 
 ![Rust-logo-edt](https://raw.githubusercontent.com/msakuta/rust-edt/master/Rust_logo_diff.png)
 
