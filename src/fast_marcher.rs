@@ -3,7 +3,6 @@ use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
     ops::{Index, IndexMut},
-    time::Instant,
 };
 
 /// Shorthand function for EDT using Fast Marching method.
@@ -19,7 +18,7 @@ pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> V
     };
     let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
 
-    fast_marcher.evolve_steps(&mut grid, 1_000_000);
+    fast_marcher.evolve(&mut grid);
 
     grid.storage
 }
@@ -42,7 +41,7 @@ pub fn edt_fmm_cb<T: BoolLike>(
     };
     let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
 
-    fast_marcher.evolve(&mut grid, callback);
+    fast_marcher.evolve_cb(&mut grid, callback);
 
     grid.storage
 }
@@ -101,7 +100,7 @@ impl IndexMut<GridPos> for Grid {
 #[derive(Clone)]
 pub(super) struct NextCell {
     pos: GridPos,
-    cost: f32,
+    cost: f64,
 }
 
 impl PartialEq for NextCell {
@@ -127,7 +126,7 @@ impl Ord for NextCell {
 #[derive(Clone)]
 pub(super) struct FastMarcher {
     next_cells: BinaryHeap<NextCell>,
-    visited: Vec<f32>,
+    visited: Vec<f64>,
     dims: (usize, usize),
 }
 
@@ -171,7 +170,7 @@ impl FastMarcher {
                         self.visited[x as usize + y as usize * self.dims.0]
                     }
                 };
-                let delta_1d = |p: f32, n: f32| {
+                let delta_1d = |p: f64, n: f64| {
                     if p == 0. && n == 0. {
                         None
                     } else if p == 0. {
@@ -241,7 +240,7 @@ pub struct FMMCallbackData<'src> {
 }
 
 impl FastMarcher {
-    pub(super) fn evolve(
+    pub(super) fn evolve_cb(
         &mut self,
         grid: &mut Grid,
         mut callback: impl FnMut(FMMCallbackData) -> bool,
@@ -256,22 +255,11 @@ impl FastMarcher {
         }
     }
 
-    pub(super) fn evolve_steps(&mut self, grid: &mut Grid, steps: usize) {
-        let start = Instant::now();
-        let mut evolved = false;
-        for _ in 0..steps {
+    pub(super) fn evolve(&mut self, grid: &mut Grid) {
+        loop {
             if !self.evolve_single(grid) {
                 break;
             }
-            evolved = true;
-        }
-        if evolved {
-            println!(
-                "FastMarcher::evolve: next_cells: {}, visited: {}, time: {}",
-                self.next_cells.len(),
-                self.visited.iter().filter(|p| 0. < **p).count(),
-                start.elapsed().as_nanos() as f64 * 1e-9
-            );
         }
     }
 }
