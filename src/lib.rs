@@ -44,7 +44,9 @@
 //! [example-edt](https://github.com/msakuta/rust-edt/blob/master/examples/edt.rs))
 //! which can be run by
 //!
-//!     cargo r --release --example edt -- Rust_logo.png -d
+//! ```bash
+//! cargo r --release --example edt -- Rust_logo.png -d
+//! ```
 //!
 //! ![Rust-logo-edt](https://raw.githubusercontent.com/msakuta/rust-edt/master/Rust_logo_diff.png)
 //!
