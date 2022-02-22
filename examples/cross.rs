@@ -1,25 +1,37 @@
-use edt::edt;
+use edt::{edt, edt_fmm};
 use image::{ImageBuffer, Luma};
-use std::time::Instant;
+use std::{env, time::Instant};
 
 fn main() {
     const SIZE: usize = 512;
-    const HALFSIZE: usize = SIZE / 2;
-    const QUATERSIZE: isize = SIZE as isize / 4;
 
-    let mut map = vec![false; SIZE * SIZE];
+    let size = env::args()
+        .skip(1)
+        .next()
+        .and_then(|s| s.parse().ok())
+        .unwrap_or(SIZE);
+    let half_size = size / 2;
+    let quater_size = (size / 4) as isize;
 
-    for i in 0..SIZE {
-        for j in 0..SIZE {
-            let dx = j as isize - HALFSIZE as isize;
-            let dy = i as isize - HALFSIZE as isize;
-            map[j + i * SIZE] = dx.abs() < QUATERSIZE || dy.abs() < QUATERSIZE;
+    let use_fmm = env::args()
+        .skip(2)
+        .next()
+        .map(|s| s == "-e")
+        .unwrap_or(false);
+
+    let mut map = vec![false; size * size];
+
+    for i in 0..size {
+        for j in 0..size {
+            let dx = j as isize - half_size as isize;
+            let dy = i as isize - half_size as isize;
+            map[j + i * size] = dx.abs() < quater_size || dy.abs() < quater_size;
         }
     }
 
     let start = Instant::now();
 
-    let edt_f64 = edt(&map, (SIZE, SIZE), false);
+    let edt_f64 = if use_fmm { edt_fmm } else { edt }(&map, (size, size), false);
 
     let duration = start.elapsed().as_micros();
     println!("time: {:?}ms", duration as f64 / 1e3);
@@ -30,7 +42,7 @@ fn main() {
         .collect();
 
     let edt_img: ImageBuffer<Luma<u8>, Vec<u8>> =
-        ImageBuffer::from_vec(SIZE as u32, SIZE as u32, edt_img).unwrap();
+        ImageBuffer::from_vec(size as u32, size as u32, edt_img).unwrap();
 
     // Write the contents of this image to the Writer in PNG format.
     edt_img.save("edt.png").unwrap();

@@ -24,6 +24,32 @@ The algorithm used in this crate (Saito's algorithm) is O(n^3), where n is the n
 Naive computation of EDT would be O(n^4), so it is certainly better than that, but there is also fast-marching based
 algorithm that is O(n^2).
 
+
+### Fast Marching Method
+
+Fast Marching method is a strategy of algorithms that use expanding wavefront
+(sometimes called grassfire analogy).
+Tehcnically, it is a method to solve Eikonal PDE with known margin of error.
+It is especially useful with EDT, because it has O(n^2) complexity, which is beneficial in large images.
+
+In my specific environment with 1024 x 1024 pixels image, it has significant
+difference like below.
+
+* Exact EDT: 2900ms
+* Fast Marching EDT: 93.7ms
+
+However, it has downside that it cannot produce exact (true) EDT.
+That said, FMM has enough accuracy for most applications.
+
+The library has a function with progress callback that you can use to produce nice animation like below.
+
+![Rust-logo-fmm](https://raw.githubusercontent.com/msakuta/msakuta.github.io/master/images/showcase/Rust_logo_animated.gif)
+
+The difference between exact and Fast Marching versions can be visualized like below (see
+[example-edt](https://github.com/msakuta/rust-edt/blob/master/examples/edt.rs)).
+
+![Rust-logo-edt](https://raw.githubusercontent.com/msakuta/rust-edt/master/Rust_logo_diff.png)
+
 ## Usage
 
 Add dependency
@@ -100,3 +126,8 @@ Section 7.7
 ### Saito and Toriwaki \[1994\] (Original paper)
 
 https://www.cs.jhu.edu/~misha/ReadingSeminar/Papers/Saito94.pdf
+
+
+### An introduction to Fast Marching Method
+
+[Dijkstra and Fast Marching Algorithms (tutorial in Matlab)](https://www.numerical-tours.com/matlab/fastmarching_0_implementing/)
