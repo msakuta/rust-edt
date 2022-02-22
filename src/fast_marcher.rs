@@ -1,9 +1,51 @@
+use super::BoolLike;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
     ops::{Index, IndexMut},
     time::Instant,
 };
+
+/// Shorthand function for EDT using Fast Marching method.
+///
+/// Fast Marching method is inexact, but much faster algorithm to compute EDT especially for large images.
+pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
+    let mut grid = Grid {
+        storage: map
+            .iter()
+            .map(|b| ((b.as_bool() != invert) as usize) as f64)
+            .collect::<Vec<f64>>(),
+        dims: shape,
+    };
+    let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
+
+    fast_marcher.evolve_steps(&mut grid, 1_000_000);
+
+    grid.storage
+}
+
+/// EDT with Fast Marching method with a callback.
+///
+/// The callback can terminate the process
+pub fn edt_fmm_cb<T: BoolLike>(
+    map: &[T],
+    shape: (usize, usize),
+    invert: bool,
+    callback: impl FnMut(FMMCallbackData) -> bool,
+) -> Vec<f64> {
+    let mut grid = Grid {
+        storage: map
+            .iter()
+            .map(|b| ((b.as_bool() != invert) as usize) as f64)
+            .collect::<Vec<f64>>(),
+        dims: shape,
+    };
+    let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
+
+    fast_marcher.evolve(&mut grid, callback);
+
+    grid.storage
+}
 
 /// A type representing a position in Grid
 pub type GridPos = (usize, usize);
@@ -78,7 +120,7 @@ impl PartialOrd for NextCell {
 
 impl Ord for NextCell {
     fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(&other).unwrap_or(Ordering::Equal)
+        self.partial_cmp(other).unwrap_or(Ordering::Equal)
     }
 }
 
@@ -230,6 +272,42 @@ impl FastMarcher {
                 self.visited.iter().filter(|p| 0. < **p).count(),
                 start.elapsed().as_nanos() as f64 * 1e-9
             );
+        }
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use super::*;
+    use crate::test_util::*;
+
+    fn approx_eq(a: f64, b: f64) {
+        if a == 0. && b == 0. {
+            return;
+        }
+        let rel_err = (a - b).abs() / a.abs().max(b.abs());
+        assert!(rel_err < 0.2, "a: {}, b: {}", a, b);
+    }
+
+    #[test]
+    fn test_edt() {
+        let map = test_map();
+        let str_edt = [
+            "0000000000",
+            "0001111000",
+            "0013443110",
+            "0013443100",
+            "0001111000",
+        ];
+        let shape = (map.len() / str_edt.len(), str_edt.len());
+        let mut edt = edt_fmm(&map, shape, false);
+        for cell in &mut edt {
+            *cell = cell.powf(2.);
+        }
+        eprintln!("edt({:?}):", shape);
+        print_2d(&reshape(&edt, shape));
+        for (a, b) in edt.iter().zip(parse_edt_str(&str_edt).iter()) {
+            approx_eq(*a, *b);
         }
     }
 }

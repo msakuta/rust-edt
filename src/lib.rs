@@ -127,9 +127,9 @@
 //!
 //! [Dijkstra and Fast Marching Algorithms (tutorial in Matlab)](https://www.numerical-tours.com/matlab/fastmarching_0_implementing/)
 
+mod exact_edt;
 mod fast_marcher;
 mod primitive_impl;
-mod exact_edt;
 
 /// A trait for types that can be interpreted as a bool.
 ///
@@ -143,47 +143,7 @@ pub trait BoolLike {
 }
 
 pub use exact_edt::{edt, edt_sq};
-use fast_marcher::{FastMarcher, Grid};
+pub use fast_marcher::{edt_fmm, edt_fmm_cb, FMMCallbackData, GridPos};
 
-/// Shorthand function for EDT using Fast Marching method.
-///
-/// Fast Marching method is inexact, but much faster algorithm to compute EDT especially for large images.
-pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<f64> {
-    let mut grid = Grid {
-        storage: map
-            .iter()
-            .map(|b| ((b.as_bool() != invert) as usize) as f64)
-            .collect::<Vec<f64>>(),
-        dims: shape,
-    };
-    let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
-
-    fast_marcher.evolve_steps(&mut grid, 1_000_000);
-
-    grid.storage
-}
-
-pub use fast_marcher::{FMMCallbackData, GridPos};
-
-/// EDT with Fast Marching method with a callback.
-///
-/// The callback can terminate the process
-pub fn edt_fmm_cb<T: BoolLike>(
-    map: &[T],
-    shape: (usize, usize),
-    invert: bool,
-    callback: impl FnMut(FMMCallbackData) -> bool,
-) -> Vec<f64> {
-    let mut grid = Grid {
-        storage: map
-            .iter()
-            .map(|b| ((b.as_bool() != invert) as usize) as f64)
-            .collect::<Vec<f64>>(),
-        dims: shape,
-    };
-    let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
-
-    fast_marcher.evolve(&mut grid, callback);
-
-    grid.storage
-}
+#[cfg(test)]
+mod test_util;
