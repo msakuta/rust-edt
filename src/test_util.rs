@@ -15,7 +15,7 @@ pub(crate) fn test_map() -> Vec<bool> {
     map
 }
 
-pub(crate) fn reshape(v: &Vec<f64>, shape: (usize, usize)) -> Vec<Vec<f64>> {
+pub(crate) fn reshape<T: Copy>(v: &Vec<T>, shape: (usize, usize)) -> Vec<Vec<T>> {
     let mut ret = vec![];
 
     for y in 0..shape.1 {
@@ -25,14 +25,24 @@ pub(crate) fn reshape(v: &Vec<f64>, shape: (usize, usize)) -> Vec<Vec<f64>> {
     ret
 }
 
-pub(crate) fn print_2d(v: &[Vec<f64>]) {
+pub(super) trait PrintDist {
+    fn print(&self);
+}
+
+impl PrintDist for f64 {
+    fn print(&self) {
+        if *self == 16. {
+            print!("f");
+        } else {
+            print!("{:.1}", *self);
+        }
+    }
+}
+
+pub(crate) fn print_2d<T: PrintDist>(v: &[Vec<T>]) {
     for row in v {
         for cell in row {
-            if *cell == 16. {
-                print!("f");
-            } else {
-                print!("{:.1}", cell);
-            }
+            cell.print();
         }
         print!("\n");
     }

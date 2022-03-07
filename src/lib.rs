@@ -138,6 +138,7 @@
 //! [Dijkstra and Fast Marching Algorithms (tutorial in Matlab)](https://www.numerical-tours.com/matlab/fastmarching_0_implementing/)
 
 mod exact_edt;
+mod exact_edt_relpos;
 mod fast_marcher;
 mod primitive_impl;
 
