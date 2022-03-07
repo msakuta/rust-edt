@@ -1,7 +1,7 @@
 // mod save_img;
 
 use clap::Parser;
-use edt::{edt, edt_fmm, edt_fmm_cb, FMMCallbackData};
+use edt::{edt, edt_fmm, edt_fmm_cb, edt_relpos, FMMCallbackData};
 use image::{GenericImageView, ImageBuffer, Luma, Rgb};
 use std::time::Instant;
 
@@ -22,12 +22,18 @@ Warning! don't put too small number, or it will produce lots of images!"
     progress_steps: Option<usize>,
     #[clap(short, long, help = "Make difference between exact and Fast Marching")]
     diff: bool,
+    #[clap(
+        short,
+        long,
+        help = "Use relative vector to the nearest background. The output image will be rgb image wher red is edt intensity, blue is horizontal relative position and green is vertical relative position"
+    )]
+    use_relpos: bool,
 }
 
 fn main() -> std::io::Result<()> {
     let args = Args::parse();
 
-    let img = image::open(args.file_name).unwrap();
+    let img = image::open(&args.file_name).unwrap();
     let dims = img.dimensions();
     println!("dimensions {:?}, color: {:?}", dims, img.color());
 
@@ -38,17 +44,25 @@ fn main() -> std::io::Result<()> {
 
     println!("len {}", slice.len());
 
+    (if args.use_relpos {
+        main_edt_relpos
+    } else {
+        main_edt
+    })(args, slice, dims)
+}
+
+fn main_edt(args: Args, slice: &[u8], dims: (u32, u32)) -> std::io::Result<()> {
     let start = Instant::now();
 
     let mut i = 0;
 
     let edt_f64 = if args.diff {
         let fmm = edt_fmm(&slice, (dims.0 as usize, dims.1 as usize), true);
-        let exact = edt(&slice, (dims.0 as usize, dims.1 as usize), true);
+        let exact = edt_relpos(&slice, (dims.0 as usize, dims.1 as usize), true);
         let result: Vec<_> = fmm
             .into_iter()
             .zip(exact.into_iter())
-            .map(|(a, b)| a - b)
+            .map(|(a, b)| a - b.val)
             .collect();
         println!(
             "Max diff: {}",
@@ -127,7 +141,7 @@ fn main() -> std::io::Result<()> {
     } else {
         let edt_img = edt_f64
             .iter()
-            .map(|p| (*p / max_value * 255.) as u8)
+            .map(|p| (p / max_value * 255.) as u8)
             .collect();
 
         let edt_img: ImageBuffer<Luma<u8>, Vec<u8>> =
@@ -135,6 +149,29 @@ fn main() -> std::io::Result<()> {
 
         edt_img.save("edt.png").unwrap();
     };
+
+    Ok(())
+}
+
+fn main_edt_relpos(_args: Args, slice: &[u8], dims: (u32, u32)) -> std::io::Result<()> {
+    let edt_f64 = edt_relpos(&slice, (dims.0 as usize, dims.1 as usize), true);
+
+    let edt_img = edt_f64
+        .iter()
+        .map(|p| {
+            [
+                0, //(p.val / max_value * 255.) as u8,
+                (p.relpos[0] + 127) as u8,
+                (p.relpos[1] + 127) as u8,
+            ]
+        })
+        .flatten()
+        .collect();
+
+    let edt_img: ImageBuffer<Rgb<u8>, Vec<u8>> =
+        ImageBuffer::from_vec(dims.0, dims.1, edt_img).unwrap();
+
+    edt_img.save("edt.png").unwrap();
 
     Ok(())
 }

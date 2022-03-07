@@ -154,6 +154,7 @@ pub trait BoolLike {
 }
 
 pub use exact_edt::{edt, edt_sq};
+pub use exact_edt_relpos::{edt as edt_relpos, edt_sq as edt_sq_relpos};
 pub use fast_marcher::{edt_fmm, edt_fmm_cb, FMMCallbackData, GridPos};
 
 #[cfg(test)]

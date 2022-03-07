@@ -1,12 +1,11 @@
 use super::BoolLike;
-use std::cmp::{PartialOrd, Ordering};
+use std::cmp::{Ordering, PartialOrd};
 
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Pixel {
-    val: f64,
-    relpos: [i32; 2],
+    pub val: f64,
+    pub relpos: [i32; 2],
 }
-
 
 /// Produce an EDT from binary image.
 ///
@@ -37,15 +36,11 @@ pub fn edt_sq<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Ve
             let horz_val = horz_p.val;
             Pixel {
                 val: (y2 as f64 - y as f64).powf(2.) + horz_val.powf(2.),
-                relpos: [horz_p.relpos[0], horz_p.relpos[1]],
+                relpos: [horz_p.relpos[0], y as i32 - y2 as i32],
             }
         });
         let vmin = total_edt
-            .reduce(|a, b| if a.val < b.val {
-                a
-            } else {
-                b
-            })
+            .reduce(|a, b| if a.val < b.val { a } else { b })
             .unwrap();
 
         if (y as f64).powf(2.) < vmin.val {
@@ -83,7 +78,7 @@ impl PartialOrd for Pixel {
 fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<Pixel> {
     let mut horz_edt = map
         .iter()
-        .map(|b| Pixel{
+        .map(|b| Pixel {
             val: (((b.as_bool() != invert) as usize) * map.len()) as f64,
             relpos: [0, 0],
         })
@@ -100,14 +95,14 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
     };
 
     for y in 0..shape.1 {
-        let mut min_val = Pixel{
+        let mut min_val = Pixel {
             val: 0.,
             relpos: [0, 0],
         };
         for x in 0..shape.0 {
             scan(x, y, &mut min_val, &mut horz_edt, -1);
         }
-        min_val = Pixel{
+        min_val = Pixel {
             val: 0.,
             relpos: [0, 0],
         };
@@ -139,22 +134,20 @@ mod test {
             s.iter()
                 .map(|s| {
                     s.chars()
-                        .map(|c| {
-                            Pixel {
-                                val: if c != 'f' {
-                                    (c as u8 - '0' as u8) as f64
-                                } else {
-                                    15.
-                                },
-                                relpos: [0, 0],
-                            }
+                        .map(|c| Pixel {
+                            val: if c != 'f' {
+                                (c as u8 - '0' as u8) as f64
+                            } else {
+                                15.
+                            },
+                            relpos: [0, 0],
                         })
                         .collect::<Vec<_>>()
                 })
                 .collect::<Vec<_>>(),
         )
     }
-    
+
     #[test]
     fn test_horizontal_edt() {
         let map = test_map();
