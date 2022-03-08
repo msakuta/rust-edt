@@ -8,7 +8,7 @@ use std::time::Instant;
 #[derive(Parser, Debug)]
 #[clap(author, version, about)]
 struct Args {
-    #[clap(default_value = "Rust_Logo.png", help = "File name to apply EDT.")]
+    #[clap(default_value = "Rust_logo.png", help = "File name to apply EDT.")]
     file_name: String,
     #[clap(short, long, help = "Use Fast Marching method")]
     fast_marching: bool,
