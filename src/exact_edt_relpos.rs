@@ -5,7 +5,7 @@ use std::cmp::{Ordering, PartialOrd};
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Pixel {
     pub val: f64,
-    pub relpos: [i32; 2],
+    pub relpos: (i32, i32),
 }
 
 impl PartialOrd for Pixel {
@@ -43,7 +43,7 @@ pub fn edt_sq<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Ve
             let horz_val = horz_p.val;
             Pixel {
                 val: (y2 as f64 - y as f64).powf(2.) + horz_val.powf(2.),
-                relpos: [horz_p.relpos[0], y as i32 - y2 as i32],
+                relpos: (horz_p.relpos.0, y as i32 - y2 as i32),
             }
         });
         let vmin = total_edt
@@ -53,12 +53,12 @@ pub fn edt_sq<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Ve
         if (y as f64).powf(2.) < vmin.val {
             Pixel {
                 val: (y as f64).powf(2.),
-                relpos: [0, -(y as i32)],
+                relpos: (0, -(y as i32)),
             }
         } else if ((shape.1 - y) as f64).powf(2.) < vmin.val {
             Pixel {
                 val: ((shape.1 - y) as f64).powf(2.),
-                relpos: [0, shape.1 as i32 - y as i32],
+                relpos: (0, shape.1 as i32 - y as i32),
             }
         } else {
             vmin
@@ -81,7 +81,7 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
         .iter()
         .map(|b| Pixel {
             val: (((b.as_bool() != invert) as usize) * map.len()) as f64,
-            relpos: [0, 0],
+            relpos: (0, 0),
         })
         .collect::<Vec<_>>();
 
@@ -90,7 +90,7 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
         let next = min_p.val + 1.;
         if next < p.val {
             p.val = next;
-            p.relpos[0] = min_p.relpos[0] + rel_x;
+            p.relpos.0 = min_p.relpos.0 + rel_x;
         }
         *min_p = *p;
     };
@@ -98,14 +98,14 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
     for y in 0..shape.1 {
         let mut min_val = Pixel {
             val: 0.,
-            relpos: [0, 0],
+            relpos: (0, 0),
         };
         for x in 0..shape.0 {
             scan(x, y, &mut min_val, &mut horz_edt, -1);
         }
         min_val = Pixel {
             val: 0.,
-            relpos: [0, 0],
+            relpos: (0, 0),
         };
         for x in (0..shape.0).rev() {
             scan(x, y, &mut min_val, &mut horz_edt, 1);
@@ -125,7 +125,7 @@ mod test {
         fn print(&self) {
             print!(
                 "({:.1} {:2} {:2})",
-                self.val, self.relpos[0], self.relpos[1]
+                self.val, self.relpos.0, self.relpos.1
             );
         }
     }
@@ -154,7 +154,7 @@ mod test {
                             } else {
                                 15.
                             },
-                            relpos: [parse_packed(x), parse_packed(y)],
+                            relpos: (parse_packed(x), parse_packed(y)),
                         })
                         .collect::<Vec<_>>()
                 })

@@ -82,7 +82,7 @@ fn main_edt_relpos(args: Args, map: &[bool]) {
     let max_value = edt_f64.iter().map(|p| p.val).reduce(f64::max).unwrap();
     let max_relpos = edt_f64
         .iter()
-        .map(|p| p.relpos[0].abs().max(p.relpos[1].abs()))
+        .map(|p| p.relpos.0.abs().max(p.relpos.1.abs()))
         .max()
         .unwrap();
     let edt_img = edt_f64
@@ -90,8 +90,8 @@ fn main_edt_relpos(args: Args, map: &[bool]) {
         .map(|p| {
             [
                 (p.val / max_value * 255.) as u8,
-                (p.relpos[0] * 127 / max_relpos) as u8 + 127,
-                (p.relpos[1] * 127 / max_relpos) as u8 + 127,
+                (p.relpos.0 * 127 / max_relpos) as u8 + 127,
+                (p.relpos.1 * 127 / max_relpos) as u8 + 127,
             ]
         })
         .flatten()

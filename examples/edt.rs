@@ -161,8 +161,8 @@ fn main_edt_relpos(_args: Args, slice: &[u8], dims: (u32, u32)) -> std::io::Resu
         .map(|p| {
             [
                 0, //(p.val / max_value * 255.) as u8,
-                (p.relpos[0] + 127) as u8,
-                (p.relpos[1] + 127) as u8,
+                (p.relpos.0 + 127) as u8,
+                (p.relpos.1 + 127) as u8,
             ]
         })
         .flatten()
