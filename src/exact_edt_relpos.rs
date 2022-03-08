@@ -1,10 +1,17 @@
 use super::BoolLike;
 use std::cmp::{Ordering, PartialOrd};
 
+/// Custom type that returns EDT value and relative position to the closest forward pixel.
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Pixel {
     pub val: f64,
     pub relpos: [i32; 2],
+}
+
+impl PartialOrd for Pixel {
+    fn partial_cmp(&self, other: &Pixel) -> Option<Ordering> {
+        self.val.partial_cmp(&other.val)
+    }
 }
 
 /// Produce an EDT from binary image.
@@ -67,12 +74,6 @@ pub fn edt_sq<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Ve
     }
 
     ret
-}
-
-impl PartialOrd for Pixel {
-    fn partial_cmp(&self, other: &Pixel) -> Option<Ordering> {
-        self.val.partial_cmp(&other.val)
-    }
 }
 
 fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<Pixel> {
