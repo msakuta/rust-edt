@@ -119,54 +119,47 @@ fn horizontal_edt<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -
 mod test {
     use super::*;
     use crate::test_util::*;
+    use itertools::Itertools;
 
     impl PrintDist for Pixel {
         fn print(&self) {
-            if self.val == 16. {
-                print!("f");
-            } else {
-                print!("{:.1}", self.val);
-            }
+            print!(
+                "({:.1} {:2} {:2})",
+                self.val, self.relpos[0], self.relpos[1]
+            );
         }
     }
 
-    pub(super) fn parse_edt_str_pixel(s: &[&str]) -> Vec<Pixel> {
+    fn parse_packed(chunks: impl Iterator<Item = char>) -> i32 {
+        let x = chunks.collect::<String>();
+        let x: i32 = x.trim().parse().unwrap();
+        x
+    }
+
+    pub(super) fn parse_edt_str_pixel(s: &[&str], xs: &[&str], ys: &[&str]) -> Vec<Pixel> {
         flatten(
             s.iter()
-                .map(|s| {
+                .zip(xs.iter().zip(ys))
+                .map(|(s, (xs, ys))| {
                     s.chars()
-                        .map(|c| Pixel {
+                        .zip(
+                            xs.chars()
+                                .chunks(2)
+                                .into_iter()
+                                .zip(ys.chars().chunks(2).into_iter()),
+                        )
+                        .map(|(c, (x, y))| Pixel {
                             val: if c != 'f' {
                                 (c as u8 - '0' as u8) as f64
                             } else {
                                 15.
                             },
-                            relpos: [0, 0],
+                            relpos: [parse_packed(x), parse_packed(y)],
                         })
                         .collect::<Vec<_>>()
                 })
                 .collect::<Vec<_>>(),
         )
-    }
-
-    #[test]
-    fn test_horizontal_edt() {
-        let map = test_map();
-        let str_edt = [
-            "0000000000",
-            "0001221000",
-            "0012343210",
-            "0012332100",
-            "0001221000",
-        ];
-        print_2d(&reshape(
-            &horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len()), false),
-            (str_edt[0].len(), str_edt.len()),
-        ));
-        assert_eq!(
-            horizontal_edt(&map, (map.len() / str_edt.len(), str_edt.len()), false),
-            parse_edt_str_pixel(&str_edt)
-        );
     }
 
     #[test]
@@ -179,10 +172,28 @@ mod test {
             "0012442100",
             "0001111000",
         ];
+        let str_xs = [
+            " 0 0 0 0 0 0 0 0 0 0",
+            " 0 0 0-1 0 0 1 0 0 0",
+            " 0 0-1-1 0 0 1 0 0 0",
+            " 0 0 0-1 0 0 1 0 0 0",
+            " 0 0 0-1 0 0 1 0 0 0",
+        ];
+        let str_ys = [
+            " 0 0 0 0 0 0 0 0 0 0",
+            " 0 0 0 0 1 1 0 0 0 0",
+            " 0 0 0 1 2 2 1 1-1 0",
+            " 0 0-1-1 2 2-1-1 0 0",
+            " 0 0 0 0 1 1 0 0 0 0",
+        ];
         let shape = (map.len() / str_edt.len(), str_edt.len());
         let edt = edt_sq(&map, shape, false);
-        eprintln!("edt({:?}):", shape);
+        eprintln!("edt({:?}) size={}:", shape, std::mem::size_of_val(&str_xs));
         print_2d(&reshape(&edt, shape));
-        assert_eq!(edt, parse_edt_str_pixel(&str_edt));
+        let expected = parse_edt_str_pixel(&str_edt, &str_xs, &str_ys);
+        print_2d(&reshape(&expected, shape));
+        for (i, (a, b)) in edt.iter().zip(expected.iter()).enumerate() {
+            assert_eq!(a, b, "{}", i);
+        }
     }
 }
