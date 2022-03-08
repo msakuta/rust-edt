@@ -1,7 +1,7 @@
 use super::BoolLike;
 use std::cmp::{Ordering, PartialOrd};
 
-/// Custom type that returns EDT value and relative position to the closest forward pixel.
+/// Custom type that returns EDT value and relative position to the closest foreground pixel.
 #[derive(Clone, Copy, Debug, PartialEq, Default)]
 pub struct Pixel {
     pub val: f64,
