@@ -140,6 +140,7 @@
 mod exact_edt;
 mod exact_edt_relpos;
 mod fast_marcher;
+pub mod fast_marcher_relpos;
 mod primitive_impl;
 
 /// A trait for types that can be interpreted as a bool.
@@ -156,6 +157,7 @@ pub trait BoolLike {
 pub use exact_edt::{edt, edt_sq};
 pub use exact_edt_relpos::{edt as edt_relpos, edt_sq as edt_sq_relpos, Pixel};
 pub use fast_marcher::{edt_fmm, edt_fmm_cb, FMMCallbackData, GridPos};
+pub use fast_marcher_relpos::{edt_fmm as edt_fmm_relpos, edt_fmm_cb as edt_fmm_cb_relpos, FMMCallbackData as FMMCallbackDataRelPos, FastMarcher};
 
 #[cfg(test)]
 mod test_util;

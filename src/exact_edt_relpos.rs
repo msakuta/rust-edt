@@ -8,6 +8,12 @@ pub struct Pixel {
     pub relpos: (i32, i32),
 }
 
+impl BoolLike for Pixel {
+    fn as_bool(&self) -> bool {
+        self.val.as_bool()
+    }
+}
+
 impl PartialOrd for Pixel {
     fn partial_cmp(&self, other: &Pixel) -> Option<Ordering> {
         self.val.partial_cmp(&other.val)
