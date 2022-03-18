@@ -129,10 +129,7 @@ mod test {
 
     impl PrintDist for Pixel {
         fn print(&self) {
-            print!(
-                "({:.1} {:2} {:2})",
-                self.val, self.relpos.0, self.relpos.1
-            );
+            print!("({:.1} {:2} {:2})", self.val, self.relpos.0, self.relpos.1);
         }
     }
 

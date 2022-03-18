@@ -1,28 +1,29 @@
 use super::BoolLike;
+use super::Pixel;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
     ops::{Index, IndexMut},
 };
-use super::Pixel;
 
 /// Shorthand function for EDT using Fast Marching method.
 ///
 /// Fast Marching method is inexact, but much faster algorithm to compute EDT especially for large images.
-pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<Pixel> {
+pub fn edt_fmm<T: BoolLike>(map: &[T], shape: (usize, usize), invert: bool) -> Vec<PixelAbs> {
     let mut grid = Grid {
         storage: map
             .iter()
-            .map(|b| Pixel {
-                val:((b.as_bool() != invert) as usize) as f64,
-                relpos: (0, 0),
+            .enumerate()
+            .map(|(i, b)| PixelAbs {
+                val: ((b.as_bool() != invert) as usize) as f64,
+                abspos: (i % shape.0, i / shape.0),
             })
             .collect::<Vec<_>>(),
         dims: shape,
     };
     let mut fast_marcher = FastMarcher::new_from_map(&grid, shape);
 
-    fast_marcher.evolve(&mut grid);
+    fast_marcher.evolve(&mut grid, usize::MAX);
 
     grid.storage
 }
@@ -35,13 +36,14 @@ pub fn edt_fmm_cb<T: BoolLike>(
     shape: (usize, usize),
     invert: bool,
     callback: impl FnMut(FMMCallbackData) -> bool,
-) -> Vec<Pixel> {
+) -> Vec<PixelAbs> {
     let mut grid = Grid {
         storage: map
             .iter()
-            .map(|b| Pixel {
-                val:((b.as_bool() != invert) as usize) as f64,
-                relpos: (0, 0),
+            .enumerate()
+            .map(|(i, b)| PixelAbs {
+                val: ((b.as_bool() != invert) as usize) as f64,
+                abspos: (i % shape.0, i / shape.0),
             })
             .collect::<Vec<_>>(),
         dims: shape,
@@ -58,12 +60,12 @@ pub type GridPos = (usize, usize);
 
 #[derive(Clone)]
 pub struct Grid {
-    pub storage: Vec<Pixel>,
+    pub storage: Vec<PixelAbs>,
     pub dims: (usize, usize),
 }
 
 impl Grid {
-    pub fn try_index(&self, pos: GridPos) -> Option<Pixel> {
+    pub fn try_index(&self, pos: GridPos) -> Option<PixelAbs> {
         let idx = pos.0 * self.dims.0 + pos.1;
         if idx < self.storage.len() {
             Some(self.storage[idx])
@@ -72,7 +74,7 @@ impl Grid {
         }
     }
 
-    pub fn try_index_mut(&mut self, pos: GridPos) -> Option<&mut Pixel> {
+    pub fn try_index_mut(&mut self, pos: GridPos) -> Option<&mut PixelAbs> {
         let idx = pos.0 * self.dims.0 + pos.1;
         let storage = &mut self.storage;
         if idx < storage.len() {
@@ -82,9 +84,23 @@ impl Grid {
         }
     }
 
+    pub fn invert(&mut self, pos: GridPos) {
+        if let Some(pixel) = self.try_index(pos) {
+            self.try_index_mut(pos)
+                .map(|pixel_mut| pixel_mut.val = (pixel.val == 0.) as i32 as f64);
+        }
+    }
+
     pub fn from_image<T: BoolLike>(image: &[T], dims: (usize, usize)) -> Self {
         Self {
-            storage: image.iter().map(|p| Pixel { val: (p.as_bool()) as i32 as f64, relpos: (0, 0)}).collect(),
+            storage: image
+                .iter()
+                .enumerate()
+                .map(|(i, p)| PixelAbs {
+                    val: (p.as_bool()) as i32 as f64,
+                    abspos: (i % dims.0, i / dims.0),
+                })
+                .collect(),
             dims,
         }
     }
@@ -117,7 +133,7 @@ impl Grid {
 }
 
 impl Index<GridPos> for Grid {
-    type Output = Pixel;
+    type Output = PixelAbs;
     fn index(&self, pos: GridPos) -> &Self::Output {
         let idx = pos.1 * self.dims.0 + pos.0;
         self.storage.index(idx)
@@ -131,10 +147,17 @@ impl IndexMut<GridPos> for Grid {
     }
 }
 
+/// Custom type that returns EDT value and relative position to the closest foreground pixel.
+#[derive(Clone, Copy, Debug, PartialEq, Default)]
+pub struct PixelAbs {
+    pub val: f64,
+    pub abspos: (usize, usize),
+}
+
 #[derive(Clone)]
 pub(super) struct NextCell {
     pos: GridPos,
-    pixel: Pixel,
+    pixel: PixelAbs,
 }
 
 impl PartialEq for NextCell {
@@ -160,7 +183,7 @@ impl Ord for NextCell {
 #[derive(Clone)]
 pub struct FastMarcher {
     next_cells: BinaryHeap<NextCell>,
-    visited: Vec<f64>,
+    visited: Vec<PixelAbs>,
     dims: (usize, usize),
 }
 
@@ -173,15 +196,16 @@ impl FastMarcher {
         let next_cells: BinaryHeap<_> = next_cells
             .map(|gpos| NextCell {
                 pos: gpos,
-                pixel: Pixel {
+                pixel: PixelAbs {
                     val: 1.,
-                    relpos: (0, 0),
-                }
+                    abspos: gpos,
+                },
             })
             .collect();
-        let mut visited = vec![0.; dims.0 * dims.1];
+        let mut visited = vec![PixelAbs::default(); dims.0 * dims.1];
         for NextCell { pos: (x, y), .. } in &next_cells {
-            visited[x + y * dims.0] = 1.;
+            visited[x + y * dims.0].val = 1.;
+            visited[x + y * dims.0].abspos = (*x, *y);
         }
         Self {
             next_cells,
@@ -191,7 +215,7 @@ impl FastMarcher {
     }
 
     /// Returns whether a pixel has changed; if not, there is no point iterating again
-    fn evolve_single(&mut self, grid: &mut Grid) -> bool {
+    pub fn evolve_single(&mut self, grid: &mut Grid) -> bool {
         while let Some(next) = self.next_cells.pop() {
             let x = next.pos.0 as isize;
             let y = next.pos.1 as isize;
@@ -200,57 +224,77 @@ impl FastMarcher {
                 if x < 0 || self.dims.0 as isize <= x || y < 0 || self.dims.1 as isize <= y {
                     return false;
                 }
-                let get_visited = |x, y| {
+                let get_visited = |dx, dy| {
+                    let (x, y) = (x + dx as isize, y + dy as isize);
                     if x < 0 || self.dims.0 as isize <= x || y < 0 || self.dims.1 as isize <= y {
-                        0.
+                        PixelAbs::default()
                     } else {
-                        self.visited[x as usize + y as usize * self.dims.0]
+                        let neighbor = self.visited[x as usize + y as usize * self.dims.0];
+                        neighbor
+                        // PixelAbs {
+                        //     val: neighbor.val,
+                        //     abspos: (x as usize + 1, y as usize),
+                        // }
                     }
                 };
-                let delta_1d = |p: f64, n: f64| {
-                    if p == 0. && n == 0. {
+                let delta_1d = |p: PixelAbs, n: PixelAbs| {
+                    if p.val == 0. && n.val == 0. {
                         None
-                    } else if p == 0. {
+                    } else if p.val == 0. {
                         Some(n)
-                    } else if n == 0. {
+                    } else if n.val == 0. {
                         Some(p)
                     } else {
-                        Some(p.min(n))
+                        Some(if p.val < n.val { p } else { n })
                     }
                 };
-                let u_h = delta_1d(get_visited(x + 1, y), get_visited(x - 1, y));
-                let u_v = delta_1d(get_visited(x, y + 1), get_visited(x, y - 1));
-                let next_cost = match (u_h, u_v) {
+                let u_h = delta_1d(get_visited(1, 0), get_visited(-1, 0));
+                let u_v = delta_1d(get_visited(0, 1), get_visited(0, -1));
+                let next_pixel = match (u_h, u_v) {
                     (Some(u_h), Some(u_v)) => {
-                        let delta = 2. - (u_v - u_h).powf(2.);
-                        Pixel {
-                            val: if delta < 0. {
-                            u_h.min(u_v) + 1.
+                        let delta = 2. - (u_v.val - u_h.val).powf(2.);
+                        if delta < 0. {
+                            if u_h.val < u_v.val {
+                                PixelAbs {
+                                    val: u_h.val + 1.,
+                                    abspos: u_h.abspos,
+                                }
+                            } else {
+                                PixelAbs {
+                                    val: u_v.val + 1.,
+                                    abspos: u_v.abspos,
+                                }
+                            }
                         } else {
-                            (u_v + u_h + delta.sqrt()) / 2.
-                        },
-                        relpos: (0, 0),
+                            PixelAbs {
+                                val: (u_v.val + u_h.val + delta.sqrt()) / 2.,
+                                abspos: if u_v.val < u_h.val {
+                                    u_v.abspos
+                                } else {
+                                    u_h.abspos
+                                },
+                            }
                         }
                     }
-                    (Some(u_h), None) => Pixel {
-                        val: u_h + 1.,
-                        relpos: (0, 0),
+                    (Some(u_h), None) => PixelAbs {
+                        val: u_h.val + 1.,
+                        abspos: u_h.abspos,
                     },
-                    (None, Some(u_v)) => Pixel{
-                        val: u_v + 1.,
-                        relpos: (0, 0),
+                    (None, Some(u_v)) => PixelAbs {
+                        val: u_v.val + 1.,
+                        abspos: u_v.abspos,
                     },
                     _ => panic!("No way"),
                 };
                 let (x, y) = (x as usize, y as usize);
                 let visited = self.visited[x + y * self.dims.0];
-                if (visited == 0. || next_cost.val < visited) && grid[(x, y)].val != 0. {
-                    self.visited[x + y * self.dims.0] = next_cost.val;
+                if (visited.val == 0. || next_pixel.val < visited.val) && grid[(x, y)].val != 0. {
+                    self.visited[x + y * self.dims.0] = next_pixel;
                     let pos = (x, y);
-                    grid[pos] = next_cost;
+                    grid[pos] = next_pixel;
                     self.next_cells.push(NextCell {
                         pos,
-                        pixel: next_cost,
+                        pixel: next_pixel,
                     });
                     true
                 } else {
@@ -268,6 +312,10 @@ impl FastMarcher {
         }
         false
     }
+
+    pub fn iter_cells(&self) -> impl Iterator<Item = &GridPos> {
+        self.next_cells.iter().map(|cell| &cell.pos)
+    }
 }
 
 #[non_exhaustive]
@@ -277,7 +325,7 @@ impl FastMarcher {
 /// the future.
 pub struct FMMCallbackData<'src> {
     /// The buffer for Fast Marching output in progress.
-    pub map: &'src [Pixel],
+    pub map: &'src [PixelAbs],
     /// A dynamically dispatched iterator for positions of next pixels.
     ///
     /// You can examine "expanding wavefront" by iterating this iterator.
@@ -285,7 +333,7 @@ pub struct FMMCallbackData<'src> {
 }
 
 impl FastMarcher {
-    pub(super) fn evolve_cb(
+    pub fn evolve_cb(
         &mut self,
         grid: &mut Grid,
         mut callback: impl FnMut(FMMCallbackData) -> bool,
@@ -300,8 +348,8 @@ impl FastMarcher {
         }
     }
 
-    pub(super) fn evolve(&mut self, grid: &mut Grid) {
-        loop {
+    pub fn evolve(&mut self, grid: &mut Grid, steps: usize) {
+        for _ in 0..steps {
             if !self.evolve_single(grid) {
                 break;
             }
@@ -320,6 +368,12 @@ mod test {
         }
         let rel_err = (a - b).abs() / a.abs().max(b.abs());
         assert!(rel_err < 0.2, "a: {}, b: {}", a, b);
+    }
+
+    impl PrintDist for PixelAbs {
+        fn print(&self) {
+            print!("({:.1} {:2} {:2})", self.val, self.abspos.0, self.abspos.1);
+        }
     }
 
     #[test]
