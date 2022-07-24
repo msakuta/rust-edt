@@ -215,7 +215,7 @@ impl FastMarcher {
     }
 
     /// Returns whether a pixel has changed; if not, there is no point iterating again
-    pub fn evolve_single(&mut self, grid: &mut Grid) -> bool {
+    pub fn evolve_single(&mut self, grid: &mut Grid, speed_map: Option<&Grid>) -> bool {
         while let Some(next) = self.next_cells.pop() {
             let x = next.pos.0 as isize;
             let y = next.pos.1 as isize;
@@ -252,16 +252,19 @@ impl FastMarcher {
                 let u_v = delta_1d(get_visited(0, 1), get_visited(0, -1));
                 let next_pixel = match (u_h, u_v) {
                     (Some(u_h), Some(u_v)) => {
-                        let delta = 2. - (u_v.val - u_h.val).powf(2.);
+                        let speed = speed_map
+                            .map(|map| map[(x as usize, y as usize)].val)
+                            .unwrap_or(1.);
+                        let delta = speed * 2. - (u_v.val - u_h.val).powf(2.);
                         if delta < 0. {
                             if u_h.val < u_v.val {
                                 PixelAbs {
-                                    val: u_h.val + 1.,
+                                    val: u_h.val + speed,
                                     abspos: u_h.abspos,
                                 }
                             } else {
                                 PixelAbs {
-                                    val: u_v.val + 1.,
+                                    val: u_v.val + speed,
                                     abspos: u_v.abspos,
                                 }
                             }
@@ -345,7 +348,25 @@ impl FastMarcher {
         grid: &mut Grid,
         mut callback: impl FnMut(FMMCallbackData) -> bool,
     ) -> bool {
-        while self.evolve_single(grid) {
+        while self.evolve_single(grid, None) {
+            if !callback(FMMCallbackData {
+                map: &grid.storage,
+                next_pixels: &mut self.next_cells.iter().map(|nc| nc.pos),
+            }) {
+                return true;
+            }
+        }
+        false
+    }
+
+    /// A customizable version of `evolve_cb` that you can use speed field
+    pub fn evolve_speed_cb(
+        &mut self,
+        grid: &mut Grid,
+        speed_map: &Grid,
+        mut callback: impl FnMut(FMMCallbackData) -> bool,
+    ) -> bool {
+        while self.evolve_single(grid, Some(speed_map)) {
             if !callback(FMMCallbackData {
                 map: &grid.storage,
                 next_pixels: &mut self.next_cells.iter().map(|nc| nc.pos),
@@ -360,7 +381,7 @@ impl FastMarcher {
     /// make progress if called again.
     pub fn evolve(&mut self, grid: &mut Grid, steps: usize) -> bool {
         for _ in 0..steps {
-            if !self.evolve_single(grid) {
+            if !self.evolve_single(grid, None) {
                 return false;
             }
         }
