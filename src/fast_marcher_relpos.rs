@@ -333,19 +333,27 @@ pub struct FMMCallbackData<'src> {
 }
 
 impl FastMarcher {
+    /// A version of `evolve` that the user can provide with a callback to
+    /// terminate the fast marching with any condition. If `callback` returns false,
+    /// the search will stop.
+    /// You could resume search by calling `evolve` again.
+    ///
+    /// Returns whether the callback has requested to stop.
+    /// If it returns true, there can be more processable pixels.
     pub fn evolve_cb(
         &mut self,
         grid: &mut Grid,
         mut callback: impl FnMut(FMMCallbackData) -> bool,
-    ) {
+    ) -> bool {
         while self.evolve_single(grid) {
             if !callback(FMMCallbackData {
                 map: &grid.storage,
                 next_pixels: &mut self.next_cells.iter().map(|nc| nc.pos),
             }) {
-                return;
+                return true;
             }
         }
+        false
     }
 
     /// Returns whether Fast Marching Method has terminated within steps or it can
