@@ -348,12 +348,15 @@ impl FastMarcher {
         }
     }
 
-    pub fn evolve(&mut self, grid: &mut Grid, steps: usize) {
+    /// Returns whether Fast Marching Method has terminated within steps or it can
+    /// make progress if called again.
+    pub fn evolve(&mut self, grid: &mut Grid, steps: usize) -> bool {
         for _ in 0..steps {
             if !self.evolve_single(grid) {
-                break;
+                return false;
             }
         }
+        true
     }
 }
 
