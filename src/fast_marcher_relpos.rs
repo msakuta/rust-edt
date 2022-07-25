@@ -1,5 +1,4 @@
 use super::BoolLike;
-use super::Pixel;
 use std::{
     cmp::{Ordering, Reverse},
     collections::BinaryHeap,
@@ -250,11 +249,11 @@ impl FastMarcher {
                 };
                 let u_h = delta_1d(get_visited(1, 0), get_visited(-1, 0));
                 let u_v = delta_1d(get_visited(0, 1), get_visited(0, -1));
+                let speed = speed_map
+                    .map(|map| map[(x as usize, y as usize)].val)
+                    .unwrap_or(1.);
                 let next_pixel = match (u_h, u_v) {
                     (Some(u_h), Some(u_v)) => {
-                        let speed = speed_map
-                            .map(|map| map[(x as usize, y as usize)].val)
-                            .unwrap_or(1.);
                         let delta = speed * 2. - (u_v.val - u_h.val).powf(2.);
                         if delta < 0. {
                             if u_h.val < u_v.val {
@@ -280,11 +279,11 @@ impl FastMarcher {
                         }
                     }
                     (Some(u_h), None) => PixelAbs {
-                        val: u_h.val + 1.,
+                        val: u_h.val + speed,
                         abspos: u_h.abspos,
                     },
                     (None, Some(u_v)) => PixelAbs {
-                        val: u_v.val + 1.,
+                        val: u_v.val + speed,
                         abspos: u_v.abspos,
                     },
                     _ => panic!("No way"),
