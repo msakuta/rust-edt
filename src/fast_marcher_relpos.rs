@@ -219,6 +219,84 @@ impl FastMarcher {
             let x = next.pos.0 as isize;
             let y = next.pos.1 as isize;
 
+            let mut freeze_neighbor = |x, y| {
+                if x < 0 || self.dims.0 as isize <= x || y < 0 || self.dims.1 as isize <= y {
+                    return false;
+                }
+                let get_visited = |dx, dy| {
+                    let (x, y) = (x + dx as isize, y + dy as isize);
+                    if x < 0 || self.dims.0 as isize <= x || y < 0 || self.dims.1 as isize <= y {
+                        PixelAbs::default()
+                    } else {
+                        let neighbor = self.visited[x as usize + y as usize * self.dims.0];
+                        neighbor
+                        // PixelAbs {
+                        //     val: neighbor.val,
+                        //     abspos: (x as usize + 1, y as usize),
+                        // }
+                    }
+                };
+                let delta_1d = |p: PixelAbs, n: PixelAbs| {
+                    if p.val == 0. && n.val == 0. {
+                        None
+                    } else if p.val == 0. {
+                        Some(n)
+                    } else if n.val == 0. {
+                        Some(p)
+                    } else {
+                        Some(if p.val < n.val { p } else { n })
+                    }
+                };
+                let u_h = delta_1d(get_visited(1, 0), get_visited(-1, 0));
+                let u_v = delta_1d(get_visited(0, 1), get_visited(0, -1));
+                let speed = speed_map
+                    .map(|map| map[(x as usize, y as usize)].val)
+                    .unwrap_or(1.);
+                let frozen_value = match (u_h, u_v) {
+                    (Some(u_h), Some(u_v)) => {
+                        let delta = speed * 2. - (u_v.val - u_h.val).powf(2.);
+                        if delta < 0. {
+                            if u_h.val < u_v.val {
+                                PixelAbs {
+                                    val: u_h.val + speed,
+                                    abspos: u_h.abspos,
+                                }
+                            } else {
+                                PixelAbs {
+                                    val: u_v.val + speed,
+                                    abspos: u_v.abspos,
+                                }
+                            }
+                        } else {
+                            PixelAbs {
+                                val: (u_v.val + u_h.val + delta.sqrt()) / 2.,
+                                abspos: if u_v.val < u_h.val {
+                                    u_v.abspos
+                                } else {
+                                    u_h.abspos
+                                },
+                            }
+                        }
+                    }
+                    (Some(u_h), None) => PixelAbs {
+                        val: u_h.val + speed,
+                        abspos: u_h.abspos,
+                    },
+                    (None, Some(u_v)) => PixelAbs {
+                        val: u_v.val + speed,
+                        abspos: u_v.abspos,
+                    },
+                    _ => return false,
+                };
+                let (x, y) = (x as usize, y as usize);
+                self.visited[x + y * self.dims.0] = frozen_value;
+                let pos = (x, y);
+                grid[pos] = frozen_value;
+                true
+            };
+
+            freeze_neighbor(x, y);
+
             let mut check_neighbor = |x, y| {
                 if x < 0 || self.dims.0 as isize <= x || y < 0 || self.dims.1 as isize <= y {
                     return false;
@@ -293,7 +371,7 @@ impl FastMarcher {
                 if (visited.val == 0. || next_pixel.val < visited.val) && grid[(x, y)].val != 0. {
                     self.visited[x + y * self.dims.0] = next_pixel;
                     let pos = (x, y);
-                    grid[pos] = next_pixel;
+                    // grid[pos] = next_pixel;
                     self.next_cells.push(NextCell {
                         pos,
                         pixel: next_pixel,
