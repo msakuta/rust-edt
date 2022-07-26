@@ -254,7 +254,7 @@ impl FastMarcher {
                     .unwrap_or(1.);
                 let frozen_value = match (u_h, u_v) {
                     (Some(u_h), Some(u_v)) => {
-                        let delta = speed * 2. - (u_v.val - u_h.val).powf(2.);
+                        let delta = speed.powf(2.) * 2. - (u_v.val - u_h.val).powf(2.);
                         if delta < 0. {
                             if u_h.val < u_v.val {
                                 PixelAbs {
@@ -332,7 +332,7 @@ impl FastMarcher {
                     .unwrap_or(1.);
                 let next_pixel = match (u_h, u_v) {
                     (Some(u_h), Some(u_v)) => {
-                        let delta = speed * 2. - (u_v.val - u_h.val).powf(2.);
+                        let delta = speed.powf(2.) * 2. - (u_v.val - u_h.val).powf(2.);
                         if delta < 0. {
                             if u_h.val < u_v.val {
                                 PixelAbs {
