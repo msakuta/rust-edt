@@ -196,7 +196,7 @@ impl FastMarcher {
             .map(|gpos| NextCell {
                 pos: gpos,
                 pixel: PixelAbs {
-                    val: 1.,
+                    val: 1e-4,
                     abspos: gpos,
                 },
             })
@@ -219,6 +219,18 @@ impl FastMarcher {
             let x = next.pos.0 as isize;
             let y = next.pos.1 as isize;
 
+            let delta_1d = |p: PixelAbs, n: PixelAbs| {
+                if p.val == 0. && n.val == 0. {
+                    None
+                } else if p.val == 0. {
+                    Some(n)
+                } else if n.val == 0. {
+                    Some(p)
+                } else {
+                    Some(if p.val < n.val { p } else { n })
+                }
+            };
+
             let mut freeze_neighbor = |x, y| {
                 if x < 0 || self.dims.0 as isize <= x || y < 0 || self.dims.1 as isize <= y {
                     return false;
@@ -236,17 +248,6 @@ impl FastMarcher {
                         // }
                     }
                 };
-                let delta_1d = |p: PixelAbs, n: PixelAbs| {
-                    if p.val == 0. && n.val == 0. {
-                        None
-                    } else if p.val == 0. {
-                        Some(n)
-                    } else if n.val == 0. {
-                        Some(p)
-                    } else {
-                        Some(if p.val < n.val { p } else { n })
-                    }
-                };
                 let u_h = delta_1d(get_visited(1, 0), get_visited(-1, 0));
                 let u_v = delta_1d(get_visited(0, 1), get_visited(0, -1));
                 let speed = speed_map
@@ -254,16 +255,16 @@ impl FastMarcher {
                     .unwrap_or(1.);
                 let frozen_value = match (u_h, u_v) {
                     (Some(u_h), Some(u_v)) => {
-                        let delta = speed.powf(2.) * 2. - (u_v.val - u_h.val).powf(2.);
+                        let delta = speed * 2. - (u_v.val - u_h.val).powf(2.);
                         if delta < 0. {
                             if u_h.val < u_v.val {
                                 PixelAbs {
-                                    val: u_h.val + speed,
+                                    val: u_h.val + speed.sqrt(),
                                     abspos: u_h.abspos,
                                 }
                             } else {
                                 PixelAbs {
-                                    val: u_v.val + speed,
+                                    val: u_v.val + speed.sqrt(),
                                     abspos: u_v.abspos,
                                 }
                             }
@@ -279,11 +280,11 @@ impl FastMarcher {
                         }
                     }
                     (Some(u_h), None) => PixelAbs {
-                        val: u_h.val + speed,
+                        val: u_h.val + speed.sqrt(),
                         abspos: u_h.abspos,
                     },
                     (None, Some(u_v)) => PixelAbs {
-                        val: u_v.val + speed,
+                        val: u_v.val + speed.sqrt(),
                         abspos: u_v.abspos,
                     },
                     _ => return false,
@@ -314,17 +315,6 @@ impl FastMarcher {
                         // }
                     }
                 };
-                let delta_1d = |p: PixelAbs, n: PixelAbs| {
-                    if p.val == 0. && n.val == 0. {
-                        None
-                    } else if p.val == 0. {
-                        Some(n)
-                    } else if n.val == 0. {
-                        Some(p)
-                    } else {
-                        Some(if p.val < n.val { p } else { n })
-                    }
-                };
                 let u_h = delta_1d(get_visited(1, 0), get_visited(-1, 0));
                 let u_v = delta_1d(get_visited(0, 1), get_visited(0, -1));
                 let speed = speed_map
@@ -332,16 +322,16 @@ impl FastMarcher {
                     .unwrap_or(1.);
                 let next_pixel = match (u_h, u_v) {
                     (Some(u_h), Some(u_v)) => {
-                        let delta = speed.powf(2.) * 2. - (u_v.val - u_h.val).powf(2.);
+                        let delta = speed * 2. - (u_v.val - u_h.val).powf(2.);
                         if delta < 0. {
                             if u_h.val < u_v.val {
                                 PixelAbs {
-                                    val: u_h.val + speed,
+                                    val: u_h.val + speed.sqrt(),
                                     abspos: u_h.abspos,
                                 }
                             } else {
                                 PixelAbs {
-                                    val: u_v.val + speed,
+                                    val: u_v.val + speed.sqrt(),
                                     abspos: u_v.abspos,
                                 }
                             }
@@ -357,11 +347,11 @@ impl FastMarcher {
                         }
                     }
                     (Some(u_h), None) => PixelAbs {
-                        val: u_h.val + speed,
+                        val: u_h.val + speed.sqrt(),
                         abspos: u_h.abspos,
                     },
                     (None, Some(u_v)) => PixelAbs {
-                        val: u_v.val + speed,
+                        val: u_v.val + speed.sqrt(),
                         abspos: u_v.abspos,
                     },
                     _ => panic!("No way"),
@@ -410,6 +400,7 @@ pub struct FMMCallbackData<'src> {
     ///
     /// You can examine "expanding wavefront" by iterating this iterator.
     pub next_pixels: &'src mut dyn Iterator<Item = GridPos>,
+    pub visited: &'src [PixelAbs],
 }
 
 impl FastMarcher {
@@ -429,6 +420,7 @@ impl FastMarcher {
             if !callback(FMMCallbackData {
                 map: &grid.storage,
                 next_pixels: &mut self.next_cells.iter().map(|nc| nc.pos),
+                visited: &self.visited,
             }) {
                 return true;
             }
@@ -447,6 +439,7 @@ impl FastMarcher {
             if !callback(FMMCallbackData {
                 map: &grid.storage,
                 next_pixels: &mut self.next_cells.iter().map(|nc| nc.pos),
+                visited: &self.visited,
             }) {
                 return true;
             }
