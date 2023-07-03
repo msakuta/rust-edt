@@ -76,8 +76,6 @@ impl Grid {
             }
         }
 
-        println!("boundary size: {}", boundary.len());
-
         boundary
     }
 }
