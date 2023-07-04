@@ -199,7 +199,7 @@ impl FastMarcher {
                 if (visited == 0. || next_cost < visited) && grid[(x, y)] != 0. {
                     self.visited[x + y * self.dims.0] = next_cost;
                     let pos = (x, y);
-                    let cost = (next_cost) as f64;
+                    let cost = next_cost;
                     grid[pos] = cost;
                     self.next_cells.push(NextCell {
                         pos,
